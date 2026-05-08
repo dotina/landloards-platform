@@ -471,15 +471,15 @@ Create `backend/tests/test_logging.py`:
 from __future__ import annotations
 
 import json
-import logging
+from datetime import datetime
 
 import pytest
+
+from app.core.logging import configure_logging, get_logger
 
 
 def test_configure_logging_emits_json(capsys: pytest.CaptureFixture[str]) -> None:
     """After configure_logging, log records must be valid JSON on stdout."""
-    from app.core.logging import configure_logging, get_logger
-
     configure_logging(level="INFO")
     log = get_logger("test")
     log.info("hello", request_id="abc-123", user="bob")
@@ -496,8 +496,6 @@ def test_configure_logging_emits_json(capsys: pytest.CaptureFixture[str]) -> Non
 
 def test_configure_logging_respects_level(capsys: pytest.CaptureFixture[str]) -> None:
     """DEBUG records must be filtered out at INFO level."""
-    from app.core.logging import configure_logging, get_logger
-
     configure_logging(level="INFO")
     log = get_logger("test")
     log.debug("should-not-appear")
@@ -506,6 +504,41 @@ def test_configure_logging_respects_level(capsys: pytest.CaptureFixture[str]) ->
     out = capsys.readouterr().out
     assert "should-not-appear" not in out
     assert "should-appear" in out
+
+
+def test_configure_logging_emits_iso_utc_timestamp(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Each record must carry a parseable ISO-8601 UTC timestamp."""
+    configure_logging(level="INFO")
+    log = get_logger("test")
+    log.info("with-timestamp")
+
+    record = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    assert "timestamp" in record
+    parsed = datetime.fromisoformat(record["timestamp"])
+    assert parsed.tzinfo is not None, "timestamp must include timezone"
+
+
+def test_get_logger_seeds_context_from_kwargs(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Initial values passed to get_logger appear on every record."""
+    configure_logging(level="INFO")
+    log = get_logger("test", request_id="seed-abc")
+    log.info("event-1")
+    log.info("event-2")
+
+    lines = capsys.readouterr().out.strip().splitlines()
+    assert len(lines) >= 2
+    for line in lines[-2:]:
+        assert json.loads(line)["request_id"] == "seed-abc"
+
+
+def test_configure_logging_rejects_invalid_level() -> None:
+    """Unknown levels must raise rather than silently fall back to INFO."""
+    with pytest.raises(ValueError, match="Invalid log level"):
+        configure_logging(level="WARNNG")
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -530,14 +563,23 @@ import sys
 from typing import Any
 
 import structlog
+from structlog.types import FilteringBoundLogger
+
+_VALID_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
 
 
 def configure_logging(level: str = "INFO") -> None:
     """Configure structlog and stdlib logging for the whole app.
 
-    Idempotent — safe to call multiple times.
+    Idempotent: re-calling replaces the prior configuration. Loggers
+    obtained via ``get_logger`` after the call see the new settings.
     """
-    log_level = getattr(logging, level.upper(), logging.INFO)
+    level_upper = level.upper()
+    if level_upper not in _VALID_LEVELS:
+        raise ValueError(
+            f"Invalid log level {level!r}; expected one of {list(_VALID_LEVELS)}"
+        )
+    log_level = getattr(logging, level_upper)
 
     logging.basicConfig(
         format="%(message)s",
@@ -558,11 +600,10 @@ def configure_logging(level: str = "INFO") -> None:
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(),
-        cache_logger_on_first_use=True,
     )
 
 
-def get_logger(name: str | None = None, **initial_values: Any) -> structlog.stdlib.BoundLogger:
+def get_logger(name: str | None = None, **initial_values: Any) -> FilteringBoundLogger:
     """Return a bound logger; pass keyword args to seed context."""
     return structlog.get_logger(name).bind(**initial_values)
 ```

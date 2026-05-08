@@ -6,14 +6,23 @@ import sys
 from typing import Any
 
 import structlog
+from structlog.types import FilteringBoundLogger
+
+_VALID_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
 
 
 def configure_logging(level: str = "INFO") -> None:
     """Configure structlog and stdlib logging for the whole app.
 
-    Idempotent — safe to call multiple times.
+    Idempotent: re-calling replaces the prior configuration. Loggers
+    obtained via ``get_logger`` after the call see the new settings.
     """
-    log_level = getattr(logging, level.upper(), logging.INFO)
+    level_upper = level.upper()
+    if level_upper not in _VALID_LEVELS:
+        raise ValueError(
+            f"Invalid log level {level!r}; expected one of {list(_VALID_LEVELS)}"
+        )
+    log_level = getattr(logging, level_upper)
 
     logging.basicConfig(
         format="%(message)s",
@@ -34,10 +43,9 @@ def configure_logging(level: str = "INFO") -> None:
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(),
-        cache_logger_on_first_use=True,
     )
 
 
-def get_logger(name: str | None = None, **initial_values: Any) -> structlog.stdlib.BoundLogger:
+def get_logger(name: str | None = None, **initial_values: Any) -> FilteringBoundLogger:
     """Return a bound logger; pass keyword args to seed context."""
     return structlog.get_logger(name).bind(**initial_values)
