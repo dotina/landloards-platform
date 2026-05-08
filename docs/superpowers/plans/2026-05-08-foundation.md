@@ -209,7 +209,7 @@ dependencies = [
     "redis>=5.0,<6.0",
     "arq>=0.26,<1.0",
     "minio>=7.2,<8.0",
-    "structlog>=24.4,<25.0",
+    "structlog>=24.4,<26.0",
     "httpx>=0.27,<1.0",
     "sentry-sdk[fastapi]>=2.13,<3.0",
 ]
