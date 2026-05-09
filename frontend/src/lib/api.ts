@@ -2,10 +2,11 @@
  *  - Sends and accepts cookies (auth is JWT-cookie based).
  *  - Auto-injects the CSRF double-submit header on mutating requests.
  *  - Throws ApiError on non-2xx responses with the JSON body when present. */
+import { authDebug } from "./auth-debug";
+import { CSRF_COOKIE_NAME } from "./csrf";
 import { env } from "./env";
 
-/** Must match backend `CSRF_COOKIE` (`app.auth.deps`). */
-export const CSRF_COOKIE_NAME = "ll_csrf";
+export { CSRF_COOKIE_NAME };
 
 export class ApiError extends Error {
   status: number;
@@ -58,7 +59,16 @@ export async function api<T = unknown>(
     if (csrf) headers["X-CSRF-Token"] = csrf;
   }
 
-  const res = await fetch(env.apiBase + path, {
+  const fullPath = `${env.apiBase}${path}`;
+  if (env.authDebug && path.startsWith("/auth")) {
+    authDebug("fetch", {
+      method,
+      path,
+      csrfEchoed: method !== "GET" && !!headers["X-CSRF-Token"],
+    });
+  }
+
+  const res = await fetch(fullPath, {
     method,
     headers,
     body,
@@ -75,11 +85,17 @@ export async function api<T = unknown>(
   }
 
   if (!res.ok) {
+    if (env.authDebug && path.startsWith("/auth")) {
+      authDebug("response_error", { path, status: res.status });
+    }
     const detail =
       typeof payload === "object" && payload && "detail" in payload
         ? String((payload as { detail: unknown }).detail)
         : res.statusText;
     throw new ApiError(res.status, detail, payload);
+  }
+  if (env.authDebug && path.startsWith("/auth")) {
+    authDebug("response_ok", { path, status: res.status });
   }
   return payload as T;
 }

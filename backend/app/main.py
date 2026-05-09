@@ -5,9 +5,12 @@ Run with:  uvicorn --factory app.main:create_app --host 0.0.0.0 --port 8000
 from __future__ import annotations
 
 from fastapi import FastAPI
+from starlette.requests import Request
+from starlette.responses import Response
 
 from app import __version__
 from app.api import health
+from app.middleware.auth_http_access_log import auth_http_access_logger
 from app.auth.router import router as auth_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
@@ -63,6 +66,10 @@ def create_app() -> FastAPI:
 
     log = get_logger("app.startup", env=settings.app_env)
     log.info("application_startup", version=__version__)
+
+    @app.middleware("http")
+    async def _auth_http_access_log_wrap(request: Request, call_next) -> Response:
+        return await auth_http_access_logger(request, call_next)
 
     app.include_router(health.router)
     app.include_router(auth_router)

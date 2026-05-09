@@ -106,9 +106,11 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-/api}
+        NEXT_PUBLIC_AUTH_DEBUG: ${NEXT_PUBLIC_AUTH_DEBUG:-false}
     pull_policy: never
     environment:
       NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-/api}
+      NEXT_PUBLIC_AUTH_DEBUG: ${NEXT_PUBLIC_AUTH_DEBUG:-false}
     depends_on:
       backend:
         condition: service_started

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { authDebug, hasVisibleCsrfCookie } from "@/lib/auth-debug";
 import { api, ApiError } from "@/lib/api";
 import type { UserOut } from "@/lib/auth";
 
@@ -41,14 +42,26 @@ export default function LandlordRegisterPage() {
 
   async function onSubmit(values: FormValues) {
     setSubmitting(true);
+    authDebug("register_submit_start");
     try {
       const user = await api<UserOut>("/auth/landlord/register", {
         method: "POST",
         body: values,
       });
+      authDebug("register_api_ok", {
+        id: user.id,
+        role: user.role,
+        ll_csrf_visible: hasVisibleCsrfCookie(),
+      });
       push({ kind: "success", message: `Welcome, ${user.name}` });
+      authDebug("register_router_push", { href: "/dashboard" });
       router.push("/dashboard");
     } catch (e) {
+      authDebug("register_submit_error", {
+        kind: e instanceof ApiError ? "ApiError" : "unknown",
+        status: e instanceof ApiError ? e.status : undefined,
+        message: e instanceof Error ? e.message : String(e),
+      });
       const msg =
         e instanceof ApiError ? e.message : "Registration failed. Try again.";
       push({ kind: "error", message: msg });

@@ -32,11 +32,13 @@ from app.auth.schemas import (
     UserOut,
 )
 from app.core.config import get_settings
+from app.core.logging import get_logger
 from app.notifications import service as notifications
 from app.notifications.models import NotificationChannel
 from app.users.models import User
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+_session_log = get_logger("auth.session")
 
 
 def _set_session_cookies(response: Response, *, access: str, refresh: str, csrf: str) -> None:
@@ -123,7 +125,14 @@ async def landlord_register(
     refresh = security.create_token(subject=str(user.id), type_="refresh")
     csrf = service.generate_csrf_token()
     _set_session_cookies(response, access=access, refresh=refresh, csrf=csrf)
-    return UserOut.model_validate(user)
+    user_out = UserOut.model_validate(user)
+    _session_log.info(
+        "session_minted",
+        reason="landlord_register",
+        user_id=str(user.id),
+        role=user.role.value,
+    )
+    return user_out
 
 
 # ─── Login ────────────────────────────────────────────────────────────
@@ -156,7 +165,14 @@ async def login(
         refresh = security.create_token(subject=str(user.id), type_="refresh")
         csrf = service.generate_csrf_token()
         _set_session_cookies(response, access=access, refresh=refresh, csrf=csrf)
-        return LoginSuccessResponse(csrf_token=csrf, user=UserOut.model_validate(user))
+        out = LoginSuccessResponse(csrf_token=csrf, user=UserOut.model_validate(user))
+        _session_log.info(
+            "session_minted",
+            reason="login",
+            user_id=str(user.id),
+            role=user.role.value,
+        )
+        return out
     finally:
         await redis.aclose()
 

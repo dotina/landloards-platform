@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { authDebug, hasVisibleCsrfCookie } from "@/lib/auth-debug";
 import { login } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
 
@@ -39,11 +40,24 @@ export default function LoginPage() {
 
   async function onSubmit(values: FormValues) {
     setSubmitting(true);
+    authDebug("login_submit_start");
     try {
       const user = await login(values);
+      authDebug("login_api_ok", {
+        role: user.role,
+        id: user.id,
+        ll_csrf_visible: hasVisibleCsrfCookie(),
+      });
       push({ kind: "success", message: `Welcome back, ${user.name}` });
-      router.push(user.role === "tenant" ? "/tenant" : "/dashboard");
+      const nextHref = user.role === "tenant" ? "/tenant" : "/dashboard";
+      authDebug("login_router_push", { href: nextHref });
+      router.push(nextHref);
     } catch (e) {
+      authDebug("login_submit_error", {
+        kind: e instanceof ApiError ? "ApiError" : "unknown",
+        status: e instanceof ApiError ? e.status : undefined,
+        message: e instanceof Error ? e.message : String(e),
+      });
       const msg =
         e instanceof ApiError ? e.message : "Could not sign in. Try again.";
       push({ kind: "error", message: msg });
