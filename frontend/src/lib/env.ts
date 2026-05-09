@@ -1,12 +1,4 @@
-/** Runtime-validated public env vars. */
-
-const required = (name: string, value: string | undefined): string => {
-  if (!value || value.length === 0) {
-    throw new Error(`Missing required env var: ${name}`);
-  }
-  return value;
-};
-
+/** Environment configuration accessible from both server + client. */
 export const env = {
-  apiBaseUrl: required("NEXT_PUBLIC_API_BASE_URL", process.env.NEXT_PUBLIC_API_BASE_URL),
+  apiBase: process.env.NEXT_PUBLIC_API_BASE ?? "/api",
 } as const;

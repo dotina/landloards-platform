@@ -5,9 +5,12 @@ import "@testing-library/jest-dom/vitest";
 import HomePage from "@/app/page";
 
 describe("HomePage", () => {
-  it("renders the brand and the API base hint", () => {
+  it("renders the brand and the primary CTAs", () => {
     render(<HomePage />);
-    expect(screen.getByRole("heading", { name: /landloads/i })).toBeInTheDocument();
-    expect(screen.getByTestId("health-link")).toHaveTextContent("/api");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      /rent management/i
+    );
+    expect(screen.getAllByRole("link", { name: /get started|create landlord/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: /sign in/i }).length).toBeGreaterThan(0);
   });
 });
