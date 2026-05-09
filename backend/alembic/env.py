@@ -10,6 +10,8 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.core.config import get_settings
+from app.core.models import Base
+import app.core.all_models  # noqa: F401  side-effect: register all models on Base.metadata
 
 config = context.config
 
@@ -18,10 +20,7 @@ if config.config_file_name is not None:
 
 config.set_main_option("sqlalchemy.url", get_settings().database_url)
 
-# Models registered in Phase 1 will set:
-#   from app.core.db.base import Base
-#   target_metadata = Base.metadata
-target_metadata = None
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:

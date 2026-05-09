@@ -1,0 +1,1 @@
+"""Properties module: building + units."""
