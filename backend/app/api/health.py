@@ -4,9 +4,9 @@ from __future__ import annotations
 from fastapi import APIRouter, status
 from pydantic import BaseModel
 
-router = APIRouter(tags=["health"])
+from app import __version__
 
-APP_VERSION = "0.1.0"
+router = APIRouter(tags=["health"])
 
 
 class HealthResponse(BaseModel):
@@ -20,4 +20,4 @@ async def healthz() -> HealthResponse:
 
     Does NOT check downstream dependencies — see /readyz for that.
     """
-    return HealthResponse(status="ok", version=APP_VERSION)
+    return HealthResponse(status="ok", version=__version__)
