@@ -65,6 +65,20 @@ class Settings(BaseSettings):
     email_from: str = "no-reply@landloads.co.ke"
     notifications_enabled: bool = False  # flip in staging/prod
 
+    # ─── M-Pesa Daraja ────────────────────────────────────────────
+    mpesa_env: Literal["sandbox", "production"] = "sandbox"
+    mpesa_consumer_key: str = "dev-consumer-key"
+    mpesa_consumer_secret: str = "dev-consumer-secret"
+    mpesa_business_short_code: str = "174379"  # sandbox default
+    mpesa_passkey: str = (
+        "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
+    )
+    mpesa_paybill: str = "174379"
+    mpesa_callback_secret: str = "dev-callback-secret-rotate-monthly"
+    mpesa_callback_base_url: str = "https://localhost"  # set to public URL in prod
+    mpesa_initiator_name: str = "testapi"
+    mpesa_initiator_password: str = "Safaricom999!*!"
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

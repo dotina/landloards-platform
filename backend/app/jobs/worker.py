@@ -20,6 +20,18 @@ async def startup(ctx: dict[str, Any]) -> None:
     ctx["log"] = log
 
 
+async def reconcile_stk(ctx: dict[str, Any]) -> int:
+    """Hourly: find STK payments stuck in PENDING and call stk_query."""
+    from app.core.db import get_session_factory
+    from app.payments.service import reconcile_pending_stk
+
+    async with get_session_factory()() as session:
+        n = await reconcile_pending_stk(session, older_than_seconds=90)
+        await session.commit()
+    ctx["log"].info("stk_reconcile_pass", failed=n)
+    return n
+
+
 async def shutdown(ctx: dict[str, Any]) -> None:
     """Run once on worker shutdown."""
     ctx["log"].info("worker_stopped")
@@ -40,7 +52,7 @@ class _LazyRedisSettings:
 class WorkerSettings:
     """arq picks this up: `arq app.jobs.worker.WorkerSettings`."""
 
-    functions: list = []  # later phases append task functions here
+    functions: list = [reconcile_stk]
     on_startup = startup
     on_shutdown = shutdown
     redis_settings = _LazyRedisSettings()
