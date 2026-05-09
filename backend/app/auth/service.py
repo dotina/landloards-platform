@@ -6,7 +6,6 @@ import secrets
 import string
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
@@ -54,7 +53,7 @@ def _generate_tenant_code() -> str:
     return "".join(secrets.choice(_TENANT_CODE_ALPHABET) for _ in range(6))
 
 
-async def get_user_by_id(db: AsyncSession, user_id: uuid.UUID | str) -> Optional[User]:
+async def get_user_by_id(db: AsyncSession, user_id: uuid.UUID | str) -> User | None:
     if isinstance(user_id, str):
         try:
             user_id = uuid.UUID(user_id)
@@ -63,7 +62,7 @@ async def get_user_by_id(db: AsyncSession, user_id: uuid.UUID | str) -> Optional
     return await db.get(User, user_id)
 
 
-async def get_user_by_identifier(db: AsyncSession, identifier: str) -> Optional[User]:
+async def get_user_by_identifier(db: AsyncSession, identifier: str) -> User | None:
     """Look up by phone OR email."""
     stmt = select(User).where(or_(User.phone == identifier, User.email == identifier))
     return (await db.execute(stmt)).scalar_one_or_none()
@@ -107,7 +106,7 @@ async def create_tenant_invite(
     landlord: User,
     name: str,
     phone: str,
-    email: Optional[str],
+    email: str | None,
 ) -> tuple[User, str]:
     """Insert an unverified Tenant + User shell and return the signed invite token."""
     if landlord.role not in (UserRole.LANDLORD, UserRole.ADMIN):

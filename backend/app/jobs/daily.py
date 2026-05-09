@@ -1,8 +1,8 @@
 """Daily 06:00 EAT cron task — generate invoices, send reminders, accrue late fees."""
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from datetime import date as _date
-from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import select
@@ -18,10 +18,9 @@ from app.jobs.late_fee import (
     should_accrue,
 )
 from app.jobs.reminders import reminder_for_today
-from app.leases.models import Lease, LeaseStatus
+from app.leases.models import Lease
 from app.notifications import service as notifications
 from app.notifications.models import NotificationChannel
-from app.payments.models import Payment, PaymentChannel
 from app.properties.models import Unit
 from app.tenants.models import Tenant
 from app.users.models import User
@@ -31,8 +30,8 @@ log = get_logger("jobs.daily")
 
 def _today_eat() -> _date:
     """East Africa Time (UTC+3) date — used to align with 06:00 EAT cron."""
-    now_utc = datetime.now(tz=timezone.utc)
-    eat = now_utc.astimezone(tz=timezone.utc).replace(tzinfo=None)
+    now_utc = datetime.now(tz=UTC)
+    eat = now_utc.astimezone(tz=UTC).replace(tzinfo=None)
     return (eat).date()  # date naturally tracks the calendar UTC; close enough for MVP
 
 
@@ -117,7 +116,6 @@ async def run_daily(today: _date | None = None) -> dict[str, int]:
     """Public entry point — used by both arq cron and ad-hoc admin calls."""
     today = today or _today_eat()
     from app.core.db import get_session_factory
-
     from app.plans.service import detect_defaults
 
     async with get_session_factory()() as db:

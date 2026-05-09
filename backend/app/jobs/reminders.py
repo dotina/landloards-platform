@@ -2,9 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, timedelta
-from typing import Optional
-
+from datetime import date
 
 # Mapping from offset (days) to template id.  Negative offsets are pre-due,
 # positive are post-due.  Source of truth for the cron's reminder fan-out.
@@ -23,7 +21,7 @@ class ReminderHit:
     offset_days: int
 
 
-def reminder_for_today(*, today: date, due_date: date) -> Optional[ReminderHit]:
+def reminder_for_today(*, today: date, due_date: date) -> ReminderHit | None:
     """Return the template scheduled for today vs. due_date, or None."""
     delta = (today - due_date).days
     for offset, tpl in SCHEDULE:

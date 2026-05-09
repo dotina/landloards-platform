@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from io import BytesIO
+from typing import Any
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -74,7 +75,7 @@ def render_receipt_pdf(data: ReceiptData) -> bytes:
     )
     body_style = styles["BodyText"]
 
-    story: list = [
+    story: list[Any] = [
         Paragraph(f"<b>{data.landlord_name}</b>", title_style),
         Paragraph("Rent receipt", styles["Heading2"]),
         Spacer(1, 6),
@@ -137,7 +138,7 @@ def render_statement_pdf(data: StatementData) -> bytes:
         textColor=colors.HexColor(data.branding_color),
     )
 
-    story: list = [
+    story: list[Any] = [
         Paragraph(f"<b>{data.landlord_name}</b>", title_style),
         Paragraph(f"Statement for {data.tenant_name}", styles["Heading2"]),
         Paragraph(data.period_label, styles["BodyText"]),

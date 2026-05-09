@@ -1,7 +1,7 @@
 """Password hashing (argon2) + JWT encode/decode."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
 import jwt
@@ -35,7 +35,7 @@ def create_token(*, subject: str, type_: JwtType, extra: dict[str, Any] | None =
     `subject` is conventionally the user UUID as a string.
     """
     settings = get_settings()
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     if type_ == "access":
         exp = now + timedelta(minutes=settings.jwt_access_ttl_minutes)
     else:

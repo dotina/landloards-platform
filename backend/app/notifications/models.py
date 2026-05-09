@@ -4,21 +4,21 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
-from typing import Optional
 
-from sqlalchemy import DateTime, Enum as SAEnum, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.models import Base, IdMixin, TimestampMixin
 
 
-class NotificationChannel(str, enum.Enum):
+class NotificationChannel(enum.StrEnum):
     SMS = "sms"
     EMAIL = "email"
 
 
-class NotificationStatus(str, enum.Enum):
+class NotificationStatus(enum.StrEnum):
     QUEUED = "queued"
     SENT = "sent"
     DELIVERED = "delivered"
@@ -46,7 +46,7 @@ class NotificationLog(IdMixin, TimestampMixin, Base):
     )
     template: Mapped[str] = mapped_column(String(64), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
-    provider_message_id: Mapped[Optional[str]] = mapped_column(String(128))
+    provider_message_id: Mapped[str | None] = mapped_column(String(128))
     status: Mapped[NotificationStatus] = mapped_column(
         SAEnum(
             NotificationStatus,
@@ -57,5 +57,5 @@ class NotificationLog(IdMixin, TimestampMixin, Base):
         default=NotificationStatus.QUEUED,
         index=True,
     )
-    sent_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
-    error: Mapped[Optional[str]] = mapped_column(Text)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    error: Mapped[str | None] = mapped_column(Text)

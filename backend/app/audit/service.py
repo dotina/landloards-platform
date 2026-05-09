@@ -5,7 +5,7 @@ Always call from inside an open transaction; the caller commits.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,7 +28,7 @@ async def log(
         entity_type=entity_type,
         entity_id=entity_id,
         meta=meta,
-        at=datetime.now(tz=timezone.utc),
+        at=datetime.now(tz=UTC),
     )
     db.add(evt)
     await db.flush()

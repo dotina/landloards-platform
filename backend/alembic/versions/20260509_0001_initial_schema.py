@@ -14,21 +14,20 @@ Revision ID: 20260509_0001
 Revises: 8159f243f3fe
 Create Date: 2026-05-09
 """
+
 from __future__ import annotations
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
+import app.core.all_models  # noqa: F401  side-effect: register all models
 from alembic import op
-
 from app.core.config import get_settings
 from app.core.models import Base
-import app.core.all_models  # noqa: F401  side-effect: register all models
-
 
 revision: str = "20260509_0001"
-down_revision: Union[str, Sequence[str], None] = "8159f243f3fe"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "8159f243f3fe"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

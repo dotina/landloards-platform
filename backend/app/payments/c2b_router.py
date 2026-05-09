@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict
@@ -42,7 +42,7 @@ async def c2b_confirm(
     db: Annotated[AsyncSession, Depends(db_session)],
 ) -> dict[str, Any]:
     payload = await request.json()
-    outcome, ref_id = await c2b.handle_c2b_confirm(db, payload=payload)
+    outcome, _ref_id = await c2b.handle_c2b_confirm(db, payload=payload)
     await db.commit()
     log.info(
         "c2b_confirm",
@@ -57,10 +57,10 @@ async def c2b_confirm(
 class UnmatchedOut(BaseModel):
     id: uuid.UUID
     mpesa_receipt: str
-    bill_ref: Optional[str]
+    bill_ref: str | None
     msisdn: str
     amount: float
-    transaction_time: Optional[str]
+    transaction_time: str | None
     is_allocated: bool
 
     model_config = ConfigDict(from_attributes=True)
@@ -68,7 +68,7 @@ class UnmatchedOut(BaseModel):
 
 class AllocateRequest(BaseModel):
     tenant_id: uuid.UUID
-    invoice_id: Optional[uuid.UUID] = None
+    invoice_id: uuid.UUID | None = None
 
 
 admin_router = APIRouter(prefix="/admin/payments/c2b", tags=["admin-payments-c2b"])
@@ -77,7 +77,7 @@ admin_router = APIRouter(prefix="/admin/payments/c2b", tags=["admin-payments-c2b
 @admin_router.get("/unmatched", response_model=list[UnmatchedOut])
 async def list_unmatched(
     db: Annotated[AsyncSession, Depends(db_session)],
-    landlord: Annotated[User, Depends(require_landlord)],  # noqa: ARG001
+    landlord: Annotated[User, Depends(require_landlord)],
 ) -> list[UnmatchedOut]:
     rows = (
         await db.execute(

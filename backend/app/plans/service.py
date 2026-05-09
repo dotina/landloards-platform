@@ -2,15 +2,16 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, timedelta, timezone
+from collections.abc import Sequence
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
-from typing import Optional, Sequence
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.audit import service as audit
-from app.invoices.models import Invoice, InvoiceStatus
+from app.invoices.models import Invoice
 from app.invoices.state_machine import (
     PLAN_ELIGIBLE_STATES,
     IllegalStateError,
@@ -34,7 +35,7 @@ class PlanIneligible(PlanError):
     pass
 
 
-def _serialise_schedule(items: list[Installment]) -> list[dict]:
+def _serialise_schedule(items: list[Installment]) -> list[dict[str, Any]]:
     return [
         {
             "date": i.date.isoformat(),
@@ -84,7 +85,7 @@ async def request_plan(
 
     plan = PaymentPlan(
         invoice_id=invoice.id,
-        requested_at=datetime.now(tz=timezone.utc),
+        requested_at=datetime.now(tz=UTC),
         schedule=_serialise_schedule(body.schedule),
         status=PaymentPlanStatus.PENDING,
     )
@@ -109,7 +110,7 @@ async def decide_plan(
     if body.action == "approve":
         plan.status = PaymentPlanStatus.APPROVED
         plan.approved_by = landlord.id
-        plan.decided_at = datetime.now(tz=timezone.utc)
+        plan.decided_at = datetime.now(tz=UTC)
         invoice = await db.get(Invoice, plan.invoice_id)
         if invoice is not None:
             try:
@@ -126,7 +127,7 @@ async def decide_plan(
     elif body.action == "reject":
         plan.status = PaymentPlanStatus.REJECTED
         plan.approved_by = landlord.id
-        plan.decided_at = datetime.now(tz=timezone.utc)
+        plan.decided_at = datetime.now(tz=UTC)
         plan.rejection_reason = body.reason or "rejected"
         await audit.log(
             db,
@@ -154,7 +155,7 @@ async def decide_plan(
     return plan
 
 
-def _next_unpaid(schedule: list[dict]) -> Optional[dict]:
+def _next_unpaid(schedule: list[dict[str, Any]]) -> dict[str, Any] | None:
     for item in schedule:
         if not item.get("paid_payment_id"):
             return item
@@ -215,7 +216,7 @@ async def list_for_landlord(
     db: AsyncSession,
     *,
     landlord: User,
-    status_: Optional[PaymentPlanStatus] = None,
+    status_: PaymentPlanStatus | None = None,
 ) -> Sequence[PaymentPlan]:
     from app.properties.models import Property, Unit
 

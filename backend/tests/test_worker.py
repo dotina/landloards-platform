@@ -30,9 +30,9 @@ def test_worker_settings_redis_settings_reflects_current_env(
     import app.jobs.worker as worker_mod
 
     importlib.reload(worker_mod)
-    WorkerSettings = worker_mod.WorkerSettings
+    worker_settings_cls = worker_mod.WorkerSettings
 
-    rs = WorkerSettings.redis_settings
+    rs = worker_settings_cls.redis_settings
     assert rs.host == "myredis"
     assert rs.port == 6379
     assert rs.database == 2

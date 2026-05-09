@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any
 
 import httpx
 
@@ -15,8 +15,8 @@ class EmailSendError(Exception):
 
 @dataclass(frozen=True, slots=True)
 class EmailResult:
-    provider_message_id: Optional[str]
-    raw: dict
+    provider_message_id: str | None
+    raw: dict[str, Any]
 
 
 async def send_email(
@@ -24,15 +24,15 @@ async def send_email(
     to: str,
     subject: str,
     text: str,
-    html: Optional[str] = None,
-    client: Optional[httpx.AsyncClient] = None,
+    html: str | None = None,
+    client: httpx.AsyncClient | None = None,
 ) -> EmailResult:
     settings = get_settings()
     headers = {
         "Authorization": f"Bearer {settings.resend_api_key}",
         "Content-Type": "application/json",
     }
-    payload: dict = {
+    payload: dict[str, Any] = {
         "from": settings.email_from,
         "to": [to],
         "subject": subject,

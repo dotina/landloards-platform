@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, Optional
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import db_session
@@ -22,8 +22,8 @@ landlord_router = APIRouter(prefix="/invoices", tags=["invoices"])
 async def list_invoices(
     db: Annotated[AsyncSession, Depends(db_session)],
     landlord: Annotated[User, Depends(require_landlord)],
-    status_: Optional[InvoiceStatus] = Query(default=None, alias="status"),
-    lease_id: Optional[uuid.UUID] = None,
+    status_: InvoiceStatus | None = Query(default=None, alias="status"),
+    lease_id: uuid.UUID | None = None,
 ) -> list[InvoiceOut]:
     items = await service.list_invoices_for_landlord(
         db, landlord=landlord, status_=status_, lease_id=lease_id
@@ -76,7 +76,7 @@ tenant_invoices_router = APIRouter(prefix="/tenant/invoices", tags=["tenant-invo
 async def my_invoices(
     db: Annotated[AsyncSession, Depends(db_session)],
     user: Annotated[User, Depends(require_tenant)],
-    status_: Optional[InvoiceStatus] = Query(default=None, alias="status"),
+    status_: InvoiceStatus | None = Query(default=None, alias="status"),
 ) -> list[InvoiceOut]:
     tenant = await get_tenant_by_user_id(db, user_id=user.id)
     if tenant is None:

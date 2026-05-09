@@ -4,7 +4,6 @@ from __future__ import annotations
 import base64
 import datetime as _dt
 from dataclasses import dataclass
-from typing import Optional
 
 import httpx
 
@@ -53,7 +52,7 @@ def _now_timestamp() -> str:
     return _dt.datetime.now().strftime("%Y%m%d%H%M%S")
 
 
-async def get_access_token(client: Optional[httpx.AsyncClient] = None) -> str:
+async def get_access_token(client: httpx.AsyncClient | None = None) -> str:
     """Daraja OAuth: returns a short-lived bearer token."""
     url = f"{_base_url()}/oauth/v1/generate?grant_type=client_credentials"
 
@@ -78,7 +77,7 @@ async def stk_push(
     account_reference: str,
     transaction_desc: str,
     callback_url: str,
-    client: Optional[httpx.AsyncClient] = None,
+    client: httpx.AsyncClient | None = None,
 ) -> StkPushResult:
     """Initiate an STK push.
 
@@ -127,7 +126,7 @@ async def stk_push(
 
 
 async def stk_query(
-    *, checkout_request_id: str, client: Optional[httpx.AsyncClient] = None
+    *, checkout_request_id: str, client: httpx.AsyncClient | None = None
 ) -> StkQueryResult:
     settings = get_settings()
     timestamp = _now_timestamp()

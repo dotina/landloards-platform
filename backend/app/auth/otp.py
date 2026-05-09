@@ -2,17 +2,11 @@
 from __future__ import annotations
 
 import secrets
-from typing import Protocol
+from typing import cast
 
 from redis.asyncio import Redis
 
 from app.core.config import get_settings
-
-
-class _RedisLike(Protocol):
-    async def setex(self, name: str, time: int, value: str) -> object: ...
-    async def get(self, name: str) -> bytes | None: ...
-    async def delete(self, *names: str) -> int: ...
 
 
 def _key(user_id: str) -> str:
@@ -24,7 +18,7 @@ def generate_code() -> str:
     return f"{secrets.randbelow(1_000_000):06d}"
 
 
-async def issue(redis: _RedisLike, user_id: str) -> str:
+async def issue(redis: Redis, user_id: str) -> str:
     """Generate a code, persist it under `otp:<user_id>` for `otp_ttl_minutes`, and return it."""
     code = generate_code()
     ttl = get_settings().otp_ttl_minutes * 60
@@ -32,7 +26,7 @@ async def issue(redis: _RedisLike, user_id: str) -> str:
     return code
 
 
-async def verify(redis: _RedisLike, user_id: str, supplied: str) -> bool:
+async def verify(redis: Redis, user_id: str, supplied: str) -> bool:
     """Constant-time-ish verify; consume on success."""
     raw = await redis.get(_key(user_id))
     if raw is None:
@@ -46,4 +40,4 @@ async def verify(redis: _RedisLike, user_id: str, supplied: str) -> bool:
 
 async def open_redis() -> Redis:
     """Convenience constructor used by routes."""
-    return Redis.from_url(get_settings().redis_url)
+    return cast(Redis, Redis.from_url(get_settings().redis_url))

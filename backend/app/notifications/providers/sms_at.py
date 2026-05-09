@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any
 
 import httpx
 
@@ -15,16 +15,16 @@ class SmsSendError(Exception):
 
 @dataclass(frozen=True, slots=True)
 class SmsResult:
-    provider_message_id: Optional[str]
-    cost: Optional[str]
-    raw: dict
+    provider_message_id: str | None
+    cost: str | None
+    raw: dict[str, Any]
 
 
 async def send_sms(
     *,
     phone: str,
     body: str,
-    client: Optional[httpx.AsyncClient] = None,
+    client: httpx.AsyncClient | None = None,
 ) -> SmsResult:
     """POST to Africa's Talking sandbox or prod, return parsed result."""
     settings = get_settings()

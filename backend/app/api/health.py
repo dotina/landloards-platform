@@ -32,7 +32,7 @@ async def check_database() -> bool:
         async with get_engine().connect() as conn:
             await conn.execute(text("SELECT 1"))
         return True
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log.warning("readiness_db_check_failed", error=str(exc))
         return False
 
@@ -43,7 +43,7 @@ async def check_redis() -> bool:
     try:
         client = Redis.from_url(get_settings().redis_url)
         return bool(await client.ping())
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log.warning("readiness_redis_check_failed", error=str(exc))
         return False
     finally:

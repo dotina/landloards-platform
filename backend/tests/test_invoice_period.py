@@ -21,7 +21,7 @@ def test_due_day_clamped_to_last_of_short_months() -> None:
 
 
 def test_due_day_clamped_in_leap_february() -> None:
-    s, e, due = compute_period_for(today=date(2024, 2, 1), due_day=31)
+    _s, e, due = compute_period_for(today=date(2024, 2, 1), due_day=31)
     assert e == date(2024, 2, 29)
     assert due == date(2024, 2, 29)
 

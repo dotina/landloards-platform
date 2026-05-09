@@ -1,7 +1,7 @@
 """HTTP routes for auth flows."""
 from __future__ import annotations
 
-from typing import Annotated, cast
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from redis.asyncio import Redis
@@ -9,11 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import db_session
 from app.auth import otp as otp_mod
-from app.auth import rate_limit
-from app.auth import security
-from app.auth import service
-from app.notifications import service as notifications
-from app.notifications.models import NotificationChannel
+from app.auth import rate_limit, security, service
 from app.auth.deps import (
     ACCESS_COOKIE,
     CSRF_COOKIE,
@@ -35,6 +31,8 @@ from app.auth.schemas import (
     UserOut,
 )
 from app.core.config import get_settings
+from app.notifications import service as notifications
+from app.notifications.models import NotificationChannel
 from app.users.models import User
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -42,17 +40,14 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 def _set_session_cookies(response: Response, *, access: str, refresh: str, csrf: str) -> None:
     settings = get_settings()
-    common = {
-        "secure": settings.cookie_secure,
-        "samesite": settings.cookie_samesite,
-        "domain": settings.cookie_domain,
-    }
     response.set_cookie(
         ACCESS_COOKIE,
         access,
         httponly=True,
         max_age=settings.jwt_access_ttl_minutes * 60,
-        **common,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        domain=settings.cookie_domain,
     )
     response.set_cookie(
         REFRESH_COOKIE,
@@ -60,7 +55,9 @@ def _set_session_cookies(response: Response, *, access: str, refresh: str, csrf:
         httponly=True,
         max_age=settings.jwt_refresh_ttl_days * 86400,
         path="/auth",
-        **common,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        domain=settings.cookie_domain,
     )
     # CSRF cookie is intentionally NOT httpOnly — JS reads it and echoes it
     # via the X-CSRF-Token header on state-changing requests.
@@ -69,7 +66,9 @@ def _set_session_cookies(response: Response, *, access: str, refresh: str, csrf:
         csrf,
         httponly=False,
         max_age=settings.jwt_access_ttl_minutes * 60,
-        **common,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        domain=settings.cookie_domain,
     )
 
 
@@ -180,7 +179,7 @@ async def refresh(
     except _jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="invalid refresh token")
 
-    user = cast(User | None, await service.get_user_by_id(db, payload["sub"]))
+    user = await service.get_user_by_id(db, payload["sub"])
     if user is None:
         raise HTTPException(status_code=401, detail="user gone")
     access = security.create_token(subject=str(user.id), type_="access")

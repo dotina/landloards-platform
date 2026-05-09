@@ -1,7 +1,7 @@
 """arq worker: background jobs (reminders, late-fee accrual, M-Pesa reconciliation)."""
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from arq import cron
 from arq.connections import RedisSettings
@@ -45,8 +45,8 @@ class WorkerSettings:
     ``create_pool`` and crash the worker.
     """
 
-    functions: list = [reconcile_stk, daily]
-    cron_jobs: list = [
+    functions: ClassVar[list[Any]] = [reconcile_stk, daily]
+    cron_jobs: ClassVar[list[Any]] = [
         # Daily 06:00 EAT == 03:00 UTC
         cron(daily, hour={3}, minute={0}, run_at_startup=False),
         # Hourly STK reconciliation

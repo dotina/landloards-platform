@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import timedelta
 from functools import lru_cache
 from io import BytesIO
-from typing import IO
+from typing import IO, BinaryIO, cast
 
 from minio import Minio
 
@@ -42,10 +42,10 @@ def put_object(
     """Upload a blob; return its object key."""
     name = ensure_bucket(bucket)
     if isinstance(data, (bytes, bytearray)):
-        stream: IO[bytes] = BytesIO(data)
+        stream: BinaryIO = BytesIO(data)
         length = len(data)
     else:
-        stream = data
+        stream = cast(BinaryIO, data)
         try:
             stream.seek(0, 2)
             length = stream.tell()

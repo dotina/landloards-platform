@@ -7,8 +7,8 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-from app.core.models import Base
 import app.core.all_models  # noqa: F401
+from app.core.models import Base
 from app.leases.schemas import LateFeeRule, LeaseCreate
 
 

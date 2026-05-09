@@ -6,14 +6,15 @@ import uuid
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import Date, Enum as SAEnum, ForeignKey, Numeric, UniqueConstraint
+from sqlalchemy import Date, ForeignKey, Numeric, UniqueConstraint
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.models import Base, IdMixin, KESAmount, TimestampMixin
 
 
-class InvoiceStatus(str, enum.Enum):
+class InvoiceStatus(enum.StrEnum):
     OPEN = "open"
     PARTIAL = "partial"
     PAID = "paid"

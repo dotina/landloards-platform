@@ -1,16 +1,11 @@
 """Simple Redis-backed fixed-window rate limiter."""
 from __future__ import annotations
 
-from typing import Protocol
-
-
-class _RedisLike(Protocol):
-    async def incr(self, name: str) -> int: ...
-    async def expire(self, name: str, time: int) -> bool: ...
+from redis.asyncio import Redis
 
 
 async def hit(
-    redis: _RedisLike,
+    redis: Redis,
     *,
     bucket: str,
     limit: int,
@@ -21,7 +16,8 @@ async def hit(
     The first hit in a window seeds TTL; subsequent hits in the same window
     reuse it. After ``window_seconds`` the counter resets.
     """
-    count = await redis.incr(bucket)
+    count_raw = await redis.incr(bucket)
+    count = int(count_raw)
     if count == 1:
         await redis.expire(bucket, window_seconds)
     return count <= limit

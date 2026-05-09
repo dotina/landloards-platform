@@ -2,15 +2,13 @@
 from __future__ import annotations
 
 import time
-from datetime import timedelta
 
 import jwt
 import pytest
 
 from app.auth import invite as invite_mod
 from app.auth import otp as otp_mod
-from app.auth import rate_limit
-from app.auth import security
+from app.auth import rate_limit, security
 from app.auth.service import _generate_tenant_code, generate_csrf_token, is_strong_password
 from tests.fakes import FakeRedis
 

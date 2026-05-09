@@ -16,7 +16,7 @@ Events
 """
 from __future__ import annotations
 
-from typing import Final, FrozenSet, Literal
+from typing import Final, Literal
 
 from app.invoices.models import InvoiceStatus
 
@@ -75,13 +75,13 @@ _TRANSITIONS: Final[dict[tuple[InvoiceStatus, InvoiceEvent], InvoiceStatus]] = {
 
 
 # Convenience: states from which a payment plan can be requested.
-PLAN_ELIGIBLE_STATES: Final[FrozenSet[InvoiceStatus]] = frozenset(
+PLAN_ELIGIBLE_STATES: Final[frozenset[InvoiceStatus]] = frozenset(
     {InvoiceStatus.OVERDUE, InvoiceStatus.PARTIAL}
 )
 
 
 # Terminal states — never transition out.
-TERMINAL_STATES: Final[FrozenSet[InvoiceStatus]] = frozenset(
+TERMINAL_STATES: Final[frozenset[InvoiceStatus]] = frozenset(
     {InvoiceStatus.PAID, InvoiceStatus.WRITTEN_OFF}
 )
 

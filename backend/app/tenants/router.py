@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import db_session
@@ -108,7 +108,7 @@ admin_router = APIRouter(prefix="/admin/tenants", tags=["admin-tenants"])
 @admin_router.get("", response_model=list[TenantProfile])
 async def list_tenants(
     db: Annotated[AsyncSession, Depends(db_session)],
-    landlord: Annotated[User, Depends(require_landlord)],  # noqa: ARG001
+    landlord: Annotated[User, Depends(require_landlord)],
 ) -> list[TenantProfile]:
     rows = await service.list_tenants(db)
     return [
@@ -133,7 +133,7 @@ async def list_tenants(
 async def get_tenant(
     tenant_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(db_session)],
-    landlord: Annotated[User, Depends(require_landlord)],  # noqa: ARG001
+    landlord: Annotated[User, Depends(require_landlord)],
 ) -> TenantProfile:
     try:
         t, u = await service.get_tenant(db, tenant_id=tenant_id)
@@ -158,7 +158,7 @@ async def get_tenant(
 async def kyc_presigned_url(
     tenant_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(db_session)],
-    landlord: Annotated[User, Depends(require_landlord)],  # noqa: ARG001
+    landlord: Annotated[User, Depends(require_landlord)],
 ) -> KycPresignedUrlOut:
     try:
         t, _ = await service.get_tenant(db, tenant_id=tenant_id)

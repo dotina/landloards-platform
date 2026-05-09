@@ -4,7 +4,6 @@ from __future__ import annotations
 import uuid
 from datetime import date
 from decimal import Decimal
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -18,7 +17,7 @@ class InvoiceOut(BaseModel):
     amount: Decimal
     late_fee_accrued: Decimal
     status: str
-    write_off_reason: Optional[str] = None
+    write_off_reason: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

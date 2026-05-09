@@ -21,12 +21,12 @@ from app.auth import security
 from app.auth.service import DuplicateUser, register_landlord
 from app.core.config import get_settings
 from app.core.db import get_session_factory
+from app.leases.models import Lease, LeaseStatus
 from app.leases.schemas import LateFeeRule, LeaseCreate
 from app.leases.service import LeaseConflict, create_lease
-from app.leases.models import Lease, LeaseStatus
+from app.properties.models import Property, Unit
 from app.properties.schemas import PropertyCreate, UnitCreate
 from app.properties.service import create_property, create_unit
-from app.properties.models import Property, Unit
 from app.tenants.models import KycStatus, Tenant
 from app.users.models import User, UserRole
 

@@ -2,8 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date
-from typing import Optional, Sequence
+from collections.abc import Sequence
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -37,9 +36,9 @@ async def list_leases(
     db: AsyncSession,
     *,
     landlord: User,
-    status_: Optional[LeaseStatus] = None,
-    unit_id: Optional[uuid.UUID] = None,
-    tenant_id: Optional[uuid.UUID] = None,
+    status_: LeaseStatus | None = None,
+    unit_id: uuid.UUID | None = None,
+    tenant_id: uuid.UUID | None = None,
 ) -> Sequence[Lease]:
     stmt = (
         select(Lease)

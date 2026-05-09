@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Annotated
 
@@ -78,7 +78,7 @@ async def receipt_pdf(
     pdf = render_receipt_pdf(
         ReceiptData(
             receipt_no=str(payment.id)[:8].upper(),
-            paid_at=payment.created_at or datetime.now(tz=timezone.utc),
+            paid_at=payment.created_at or datetime.now(tz=UTC),
             landlord_name=landlord_name,
             tenant_name=tenant_user.name,
             unit_label=unit.label if unit else "—",
@@ -132,7 +132,7 @@ async def _build_statement(
     for p in payments:
         timeline.append(
             (
-                (p.created_at or datetime.now(tz=timezone.utc)).date().isoformat(),
+                (p.created_at or datetime.now(tz=UTC)).date().isoformat(),
                 f"Payment {p.id.hex[:8]} ({p.channel.value})",
                 Decimal("0"),
                 p.amount,
@@ -199,6 +199,6 @@ async def my_statement(
         content=pdf,
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f'attachment; filename="my-statement.pdf"',
+            "Content-Disposition": 'attachment; filename="my-statement.pdf"',
         },
     )

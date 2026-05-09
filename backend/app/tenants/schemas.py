@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -18,25 +18,25 @@ class TenantProfile(BaseModel):
     user_id: uuid.UUID
     name: str
     phone: str
-    email: Optional[str] = None
-    tenant_code: Optional[str] = None
+    email: str | None = None
+    tenant_code: str | None = None
     kyc_status: str
-    kyc_rejected_reason: Optional[str] = None
-    employer: Optional[str] = None
-    next_of_kin: Optional[dict[str, Any]] = None
+    kyc_rejected_reason: str | None = None
+    employer: str | None = None
+    next_of_kin: dict[str, Any] | None = None
     has_id_doc: bool
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class TenantUpdateProfile(BaseModel):
-    employer: Optional[str] = Field(default=None, max_length=255)
-    next_of_kin: Optional[NextOfKin] = None
+    employer: str | None = Field(default=None, max_length=255)
+    next_of_kin: NextOfKin | None = None
 
 
 class KycDecisionRequest(BaseModel):
     action: Literal["approve", "reject"]
-    reason: Optional[str] = Field(default=None, max_length=500)
+    reason: str | None = Field(default=None, max_length=500)
 
 
 class KycPresignedUrlOut(BaseModel):

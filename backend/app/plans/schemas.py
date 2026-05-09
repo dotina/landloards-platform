@@ -4,15 +4,15 @@ from __future__ import annotations
 import uuid
 from datetime import date
 from decimal import Decimal
-from typing import Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class Installment(BaseModel):
-    date: date  # noqa: A003 (intentional shadow for shape)
+    date: date
     amount: Decimal = Field(gt=0)
-    paid_payment_id: Optional[uuid.UUID] = None
+    paid_payment_id: uuid.UUID | None = None
 
 
 class PlanRequest(BaseModel):
@@ -34,11 +34,11 @@ class PlanCounter(BaseModel):
 
 class PlanDecision(BaseModel):
     action: Literal["approve", "reject", "counter"]
-    reason: Optional[str] = Field(default=None, max_length=500)
-    counter_schedule: Optional[list[Installment]] = None
+    reason: str | None = Field(default=None, max_length=500)
+    counter_schedule: list[Installment] | None = None
 
     @model_validator(mode="after")
-    def _counter_pairing(self) -> "PlanDecision":
+    def _counter_pairing(self) -> PlanDecision:
         if self.action == "counter" and not self.counter_schedule:
             raise ValueError("counter requires counter_schedule")
         if self.action != "counter" and self.counter_schedule:
@@ -50,7 +50,7 @@ class PlanOut(BaseModel):
     id: uuid.UUID
     invoice_id: uuid.UUID
     status: str
-    schedule: list[dict]
-    rejection_reason: Optional[str] = None
+    schedule: list[dict[str, Any]]
+    rejection_reason: str | None = None
 
     model_config = ConfigDict(from_attributes=True)

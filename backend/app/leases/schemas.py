@@ -7,7 +7,7 @@ from __future__ import annotations
 import uuid
 from datetime import date
 from decimal import Decimal
-from typing import Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -38,13 +38,13 @@ class LeaseCreate(BaseModel):
     unit_id: uuid.UUID
     tenant_id: uuid.UUID
     start_date: date
-    end_date: Optional[date] = None
+    end_date: date | None = None
     rent_amount: Decimal = Field(ge=0)
     deposit_amount: Decimal = Field(ge=0)
     late_fee_rule: LateFeeRule
 
     @model_validator(mode="after")
-    def _end_after_start(self) -> "LeaseCreate":
+    def _end_after_start(self) -> LeaseCreate:
         if self.end_date is not None and self.end_date < self.start_date:
             raise ValueError("end_date must be on or after start_date")
         return self
@@ -60,11 +60,11 @@ class LeaseOut(BaseModel):
     unit_id: uuid.UUID
     tenant_id: uuid.UUID
     start_date: date
-    end_date: Optional[date]
+    end_date: date | None
     rent_amount: Decimal
     deposit_amount: Decimal
-    late_fee_rule: dict  # raw jsonb for now; clients re-validate via LateFeeRule
+    late_fee_rule: dict[str, Any]  # raw jsonb for now; clients re-validate via LateFeeRule
     status: str
-    end_reason: Optional[str]
+    end_reason: str | None
 
     model_config = ConfigDict(from_attributes=True)

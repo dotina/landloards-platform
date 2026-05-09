@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional, Sequence
+from collections.abc import Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,7 +28,7 @@ class KycInvalidState(TenantError):
 
 async def get_tenant_by_user_id(
     db: AsyncSession, *, user_id: uuid.UUID
-) -> Optional[Tenant]:
+) -> Tenant | None:
     stmt = select(Tenant).where(Tenant.user_id == user_id)
     return (await db.execute(stmt)).scalar_one_or_none()
 
@@ -80,7 +80,7 @@ async def attach_kyc_doc(
     if tenant.id_doc_url and tenant.id_doc_url != key:
         try:
             remove_object(key=tenant.id_doc_url)
-        except Exception:  # noqa: BLE001
+        except Exception:
             # The orphan blob is acceptable; better than failing the upload.
             pass
     tenant.id_doc_url = key

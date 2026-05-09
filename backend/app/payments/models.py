@@ -3,23 +3,25 @@ from __future__ import annotations
 
 import enum
 import uuid
-from typing import Any, Optional
+from typing import Any
 
-from sqlalchemy import Enum as SAEnum, ForeignKey, Index, String, text
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy import ForeignKey, Index, String, text
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.models import Base, IdMixin, KESAmount, TimestampMixin
 
 
-class PaymentChannel(str, enum.Enum):
+class PaymentChannel(enum.StrEnum):
     MPESA_STK = "mpesa_stk"
     MPESA_C2B = "mpesa_c2b"
     CASH = "cash"
     BANK = "bank"
 
 
-class PaymentStatus(str, enum.Enum):
+class PaymentStatus(enum.StrEnum):
     PENDING = "pending"
     SUCCESS = "success"
     FAILED = "failed"
@@ -48,7 +50,7 @@ class Payment(IdMixin, TimestampMixin, Base):
         Index("ix_payments_invoice_status", "invoice_id", "status"),
     )
 
-    invoice_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+    invoice_id: Mapped[uuid.UUID | None] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey("invoices.id", ondelete="RESTRICT"),
     )
@@ -67,9 +69,9 @@ class Payment(IdMixin, TimestampMixin, Base):
         ),
         nullable=False,
     )
-    mpesa_receipt: Mapped[Optional[str]] = mapped_column(String(64))
-    checkout_request_id: Mapped[Optional[str]] = mapped_column(String(64))
-    raw_callback: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB)
+    mpesa_receipt: Mapped[str | None] = mapped_column(String(64))
+    checkout_request_id: Mapped[str | None] = mapped_column(String(64))
+    raw_callback: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     status: Mapped[PaymentStatus] = mapped_column(
         SAEnum(
             PaymentStatus,
@@ -79,4 +81,4 @@ class Payment(IdMixin, TimestampMixin, Base):
         nullable=False,
         default=PaymentStatus.PENDING,
     )
-    failure_reason: Mapped[Optional[str]] = mapped_column(String(500))
+    failure_reason: Mapped[str | None] = mapped_column(String(500))

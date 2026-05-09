@@ -3,16 +3,16 @@ from __future__ import annotations
 
 import enum
 import uuid
-from typing import Optional
 
-from sqlalchemy import CheckConstraint, Enum as SAEnum, ForeignKey, Numeric, String
+from sqlalchemy import CheckConstraint, ForeignKey, Numeric, String
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.models import Base, IdMixin, KESAmount, TimestampMixin
 
 
-class UnitStatus(str, enum.Enum):
+class UnitStatus(enum.StrEnum):
     VACANT = "vacant"
     OCCUPIED = "occupied"
 
@@ -30,9 +30,9 @@ class Property(IdMixin, TimestampMixin, Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     address: Mapped[str] = mapped_column(String(500), nullable=False)
-    lat: Mapped[Optional[float]] = mapped_column(Numeric(9, 6))
-    lng: Mapped[Optional[float]] = mapped_column(Numeric(9, 6))
-    photo_url: Mapped[Optional[str]] = mapped_column(String(500))
+    lat: Mapped[float | None] = mapped_column(Numeric(9, 6))
+    lng: Mapped[float | None] = mapped_column(Numeric(9, 6))
+    photo_url: Mapped[str | None] = mapped_column(String(500))
 
 
 class Unit(IdMixin, TimestampMixin, Base):

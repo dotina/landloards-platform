@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, ConfigDict
@@ -21,10 +21,10 @@ class NotificationLogOut(BaseModel):
     channel: str
     template: str
     body: str
-    provider_message_id: Optional[str]
+    provider_message_id: str | None
     status: str
-    error: Optional[str]
-    created_at: Optional[object] = None
+    error: str | None
+    created_at: object | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -35,10 +35,10 @@ router = APIRouter(prefix="/admin/notifications", tags=["admin-notifications"])
 @router.get("", response_model=list[NotificationLogOut])
 async def list_notifications(
     db: Annotated[AsyncSession, Depends(db_session)],
-    landlord: Annotated[User, Depends(require_landlord)],  # noqa: ARG001
-    recipient_id: Optional[uuid.UUID] = None,
-    channel: Optional[NotificationChannel] = Query(default=None),
-    status_: Optional[NotificationStatus] = Query(default=None, alias="status"),
+    landlord: Annotated[User, Depends(require_landlord)],
+    recipient_id: uuid.UUID | None = None,
+    channel: NotificationChannel | None = Query(default=None),
+    status_: NotificationStatus | None = Query(default=None, alias="status"),
 ) -> list[NotificationLogOut]:
     rows = await service.list_for_admin(
         db, recipient_id=recipient_id, channel=channel, status_=status_

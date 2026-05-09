@@ -4,16 +4,18 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import date
-from typing import Any, Optional
+from typing import Any
 
-from sqlalchemy import Date, Enum as SAEnum, ForeignKey, Index, text
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
+from sqlalchemy import Date, ForeignKey, Index, text
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.models import Base, IdMixin, KESAmount, TimestampMixin
 
 
-class LeaseStatus(str, enum.Enum):
+class LeaseStatus(enum.StrEnum):
     ACTIVE = "active"
     ENDED = "ended"
     TERMINATED = "terminated"
@@ -57,7 +59,7 @@ class Lease(IdMixin, TimestampMixin, Base):
         nullable=False,
     )
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
-    end_date: Mapped[Optional[date]] = mapped_column(Date)
+    end_date: Mapped[date | None] = mapped_column(Date)
     rent_amount: Mapped[KESAmount]
     deposit_amount: Mapped[KESAmount]
     late_fee_rule: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
@@ -66,4 +68,4 @@ class Lease(IdMixin, TimestampMixin, Base):
         nullable=False,
         default=LeaseStatus.ACTIVE,
     )
-    end_reason: Mapped[Optional[str]]
+    end_reason: Mapped[str | None]

@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import calendar
 import uuid
+from collections.abc import Iterable, Sequence
 from datetime import date, timedelta
 from decimal import Decimal
-from typing import Iterable, Optional, Sequence
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -138,8 +138,8 @@ async def list_invoices_for_landlord(
     db: AsyncSession,
     *,
     landlord: User,
-    status_: Optional[InvoiceStatus] = None,
-    lease_id: Optional[uuid.UUID] = None,
+    status_: InvoiceStatus | None = None,
+    lease_id: uuid.UUID | None = None,
 ) -> Sequence[Invoice]:
     stmt = (
         select(Invoice)
@@ -160,7 +160,7 @@ async def list_invoices_for_tenant(
     db: AsyncSession,
     *,
     tenant_id: uuid.UUID,
-    status_: Optional[InvoiceStatus] = None,
+    status_: InvoiceStatus | None = None,
 ) -> Sequence[Invoice]:
     stmt = (
         select(Invoice)

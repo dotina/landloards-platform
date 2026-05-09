@@ -9,11 +9,11 @@ import pytest
 
 from app.invoices.models import InvoiceStatus
 from app.invoices.state_machine import (
+    _TRANSITIONS,
     PLAN_ELIGIBLE_STATES,
     TERMINAL_STATES,
     IllegalStateError,
     InvoiceEvent,
-    _TRANSITIONS,
     next_status,
 )
 

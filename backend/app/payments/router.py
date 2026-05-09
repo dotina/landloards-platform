@@ -1,7 +1,6 @@
 """HTTP routes for STK Push initiation, status polling, and callbacks."""
 from __future__ import annotations
 
-import uuid
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
@@ -106,7 +105,7 @@ admin_router = APIRouter(prefix="/admin/payments", tags=["admin-payments"])
 @admin_router.get("", response_model=list[PaymentOut])
 async def list_payments_admin(
     db: Annotated[AsyncSession, Depends(db_session)],
-    landlord: Annotated[User, Depends(require_landlord)],  # noqa: ARG001
+    landlord: Annotated[User, Depends(require_landlord)],
 ) -> list[PaymentOut]:
     from sqlalchemy import select
 

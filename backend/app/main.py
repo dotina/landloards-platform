@@ -11,8 +11,6 @@ from app.api import health
 from app.auth.router import router as auth_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
-from app.properties.router import router as properties_router
-from app.properties.router import units_router as units_router
 from app.invoices.router import admin_router as invoices_admin_router
 from app.invoices.router import landlord_router as invoices_landlord_router
 from app.invoices.router import tenant_invoices_router
@@ -25,6 +23,8 @@ from app.payments.router import router as payments_router
 from app.payments.router import webhooks_router as payments_webhooks_router
 from app.plans.router import admin_router as plans_admin_router
 from app.plans.router import tenant_router as plans_tenant_router
+from app.properties.router import router as properties_router
+from app.properties.router import units_router as units_router
 from app.receipts.router import admin_router as receipts_admin_router
 from app.receipts.router import router as receipts_router
 from app.receipts.router import tenant_router as receipts_tenant_router
@@ -86,10 +86,10 @@ def create_app() -> FastAPI:
     app.include_router(receipts_admin_router)
     app.include_router(receipts_tenant_router)
 
-    from app.payments.router import tenant_router as payments_tenant_router
+    from app.compliance.router import router as compliance_router
     from app.leases.router import tenant_router as leases_tenant_router
     from app.notifications.router import tenant_router as notifications_tenant_router
-    from app.compliance.router import router as compliance_router
+    from app.payments.router import tenant_router as payments_tenant_router
 
     app.include_router(payments_tenant_router)
     app.include_router(leases_tenant_router)

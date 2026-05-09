@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import uuid
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -32,14 +32,14 @@ class StkInitiateResponse(BaseModel):
 
 class PaymentOut(BaseModel):
     id: uuid.UUID
-    invoice_id: Optional[uuid.UUID]
+    invoice_id: uuid.UUID | None
     tenant_id: uuid.UUID
     amount: Decimal
     channel: str
     status: str
-    mpesa_receipt: Optional[str]
-    checkout_request_id: Optional[str]
-    failure_reason: Optional[str]
+    mpesa_receipt: str | None
+    checkout_request_id: str | None
+    failure_reason: str | None
 
     model_config = ConfigDict(from_attributes=True)
 

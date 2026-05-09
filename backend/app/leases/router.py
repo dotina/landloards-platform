@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,9 +22,9 @@ router = APIRouter(prefix="/leases", tags=["leases"])
 async def list_leases(
     db: Annotated[AsyncSession, Depends(db_session)],
     landlord: Annotated[User, Depends(require_landlord)],
-    status_: Optional[LeaseStatus] = Query(default=None, alias="status"),
-    unit_id: Optional[uuid.UUID] = None,
-    tenant_id: Optional[uuid.UUID] = None,
+    status_: LeaseStatus | None = Query(default=None, alias="status"),
+    unit_id: uuid.UUID | None = None,
+    tenant_id: uuid.UUID | None = None,
 ) -> list[LeaseOut]:
     items = await service.list_leases(
         db, landlord=landlord, status_=status_, unit_id=unit_id, tenant_id=tenant_id

@@ -1,7 +1,7 @@
 """PDF rendering smoke tests."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from app.receipts.service import (
@@ -16,7 +16,7 @@ from app.receipts.service import (
 def test_receipt_pdf_returns_pdf_bytes() -> None:
     data = ReceiptData(
         receipt_no="ABCD1234",
-        paid_at=datetime(2026, 5, 9, 10, 30, tzinfo=timezone.utc),
+        paid_at=datetime(2026, 5, 9, 10, 30, tzinfo=UTC),
         landlord_name="Acme Properties",
         tenant_name="Alice Wanjiku",
         unit_label="A1",

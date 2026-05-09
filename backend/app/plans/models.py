@@ -4,16 +4,18 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
-from sqlalchemy import DateTime, Enum as SAEnum, ForeignKey
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
+from sqlalchemy import DateTime, ForeignKey
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.models import Base, IdMixin, TimestampMixin
 
 
-class PaymentPlanStatus(str, enum.Enum):
+class PaymentPlanStatus(enum.StrEnum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -37,10 +39,10 @@ class PaymentPlan(IdMixin, TimestampMixin, Base):
         index=True,
     )
     requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    approved_by: Mapped[Optional[uuid.UUID]] = mapped_column(
+    approved_by: Mapped[uuid.UUID | None] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT")
     )
-    decided_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     schedule: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False)
     status: Mapped[PaymentPlanStatus] = mapped_column(
         SAEnum(
@@ -52,4 +54,4 @@ class PaymentPlan(IdMixin, TimestampMixin, Base):
         default=PaymentPlanStatus.PENDING,
         index=True,
     )
-    rejection_reason: Mapped[Optional[str]]
+    rejection_reason: Mapped[str | None]

@@ -8,7 +8,7 @@ right-to-access while keeping the surface minimal for MVP.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Response
@@ -29,7 +29,7 @@ router = APIRouter(prefix="/me", tags=["compliance"])
 
 def _serialize(obj: Any) -> Any:
     if isinstance(obj, datetime):
-        return obj.astimezone(timezone.utc).isoformat()
+        return obj.astimezone(UTC).isoformat()
     if hasattr(obj, "value"):  # enum
         return obj.value
     return str(obj)
@@ -54,7 +54,7 @@ async def me_export(
     user: Annotated[User, Depends(get_current_user)],
 ) -> Response:
     payload: dict[str, Any] = {
-        "exported_at": datetime.now(tz=timezone.utc).isoformat(),
+        "exported_at": datetime.now(tz=UTC).isoformat(),
         "user": _row_to_dict(
             user, exclude={"hashed_password", "id_number_encrypted", "kra_pin_encrypted"}
         ),
@@ -71,9 +71,9 @@ async def me_export(
             leases = (
                 await db.execute(select(Lease).where(Lease.tenant_id == tenant_id))
             ).scalars().all()
-            payload["leases"] = [_row_to_dict(l) for l in leases]
+            payload["leases"] = [_row_to_dict(lease) for lease in leases]
 
-            lease_ids = [l.id for l in leases]
+            lease_ids = [lease.id for lease in leases]
             invoices = (
                 await db.execute(select(Invoice).where(Invoice.lease_id.in_(lease_ids)))
             ).scalars().all() if lease_ids else []

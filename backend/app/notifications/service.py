@@ -21,8 +21,9 @@ without changing this public surface.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional, Sequence
+from collections.abc import Sequence
+from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -88,17 +89,17 @@ async def send(
 
     try:
         if channel == NotificationChannel.SMS:
-            r = await send_sms(phone=recipient.phone, body=body)
-            row.provider_message_id = r.provider_message_id
+            sms_result = await send_sms(phone=recipient.phone, body=body)
+            row.provider_message_id = sms_result.provider_message_id
         else:
             if not recipient.email:
                 raise NotificationError("recipient has no email")
-            r = await send_email(
+            email_result = await send_email(
                 to=recipient.email, subject=subject, text=body
             )
-            row.provider_message_id = r.provider_message_id
+            row.provider_message_id = email_result.provider_message_id
         row.status = NotificationStatus.SENT
-        row.sent_at = datetime.now(tz=timezone.utc)
+        row.sent_at = datetime.now(tz=UTC)
     except (SmsSendError, EmailSendError) as exc:
         row.status = NotificationStatus.FAILED
         row.error = str(exc)[:500]
@@ -116,9 +117,9 @@ async def send(
 async def list_for_admin(
     db: AsyncSession,
     *,
-    recipient_id: Optional[uuid.UUID] = None,
-    channel: Optional[NotificationChannel] = None,
-    status_: Optional[NotificationStatus] = None,
+    recipient_id: uuid.UUID | None = None,
+    channel: NotificationChannel | None = None,
+    status_: NotificationStatus | None = None,
 ) -> Sequence[NotificationLog]:
     stmt = select(NotificationLog).order_by(NotificationLog.created_at.desc())
     if recipient_id is not None:

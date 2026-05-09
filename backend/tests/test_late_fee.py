@@ -79,7 +79,7 @@ def test_percent_daily_accrues_relative_to_rent() -> None:
         due_date=date(2026, 5, 1),
         params=p,
     )
-    # 1% of 10000 = 100 per day × 11 = 1100
+    # 1% of 10000 = 100 per day x 11 = 1100
     assert val == Decimal("1100.00")
 
 
@@ -91,7 +91,7 @@ def test_cap_at_rent_times_cap_months() -> None:
         due_date=date(2026, 5, 1),
         params=p,
     )
-    # Raw would be 11×100000 = 1.1M, but cap = 25000×2 = 50000.
+    # Raw would be 11 x 100000 = 1.1M, but cap = 25000 x 2 = 50000.
     assert val == Decimal("50000.00")
 
 

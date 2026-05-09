@@ -34,7 +34,7 @@ class LateFeeParams:
     cap_months: int
 
     @classmethod
-    def from_jsonb(cls, raw: dict[str, Any]) -> "LateFeeParams":
+    def from_jsonb(cls, raw: dict[str, Any]) -> LateFeeParams:
         return cls(
             type_=raw["type"],
             value=Decimal(str(raw["value"])),

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -29,7 +28,7 @@ class UserOut(BaseModel):
     id: uuid.UUID
     name: str
     phone: str
-    email: Optional[EmailStr] = None
+    email: EmailStr | None = None
     role: str
     is_verified: bool
 
@@ -39,7 +38,7 @@ class UserOut(BaseModel):
 class TenantInviteRequest(BaseModel):
     name: str = Field(min_length=2, max_length=255)
     phone: str = Field(min_length=7, max_length=20)
-    email: Optional[EmailStr] = None
+    email: EmailStr | None = None
 
 
 class TenantInviteResponse(BaseModel):

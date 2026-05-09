@@ -3,16 +3,18 @@ from __future__ import annotations
 
 import enum
 import uuid
-from typing import Any, Optional
+from typing import Any
 
-from sqlalchemy import Enum as SAEnum, ForeignKey, String
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.models import Base, IdMixin, TimestampMixin
 
 
-class KycStatus(str, enum.Enum):
+class KycStatus(enum.StrEnum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -29,12 +31,12 @@ class Tenant(IdMixin, TimestampMixin, Base):
         unique=True,
         nullable=False,
     )
-    id_doc_url: Mapped[Optional[str]] = mapped_column(String(500))
-    employer: Mapped[Optional[str]] = mapped_column(String(255))
-    next_of_kin: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB)
+    id_doc_url: Mapped[str | None] = mapped_column(String(500))
+    employer: Mapped[str | None] = mapped_column(String(255))
+    next_of_kin: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     kyc_status: Mapped[KycStatus] = mapped_column(
         SAEnum(KycStatus, name="kyc_status", values_callable=lambda e: [m.value for m in e]),
         nullable=False,
         default=KycStatus.PENDING,
     )
-    kyc_rejected_reason: Mapped[Optional[str]] = mapped_column(String(500))
+    kyc_rejected_reason: Mapped[str | None] = mapped_column(String(500))

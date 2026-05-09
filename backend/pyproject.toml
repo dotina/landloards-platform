@@ -52,7 +52,12 @@ target-version = "py314"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "A", "RUF"]
-ignore = ["E501"]  # line length handled by formatter
+ignore = [
+    "E501",  # line length handled by formatter
+    "B008",  # FastAPI uses Query()/File() in signatures by design
+    "B904",  # translating domain errors to HTTPException without chaining
+    "N818",  # exception naming (e.g. NotFound) is intentional across the codebase
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -63,3 +68,7 @@ addopts = "-v --tb=short"
 python_version = "3.14"
 strict = true
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = "reportlab.*"
+ignore_missing_imports = true

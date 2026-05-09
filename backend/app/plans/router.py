@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,7 +54,7 @@ admin_router = APIRouter(prefix="/admin/plans", tags=["admin-plans"])
 async def list_plans(
     db: Annotated[AsyncSession, Depends(db_session)],
     landlord: Annotated[User, Depends(require_landlord)],
-    status_: Optional[PaymentPlanStatus] = Query(default=None, alias="status"),
+    status_: PaymentPlanStatus | None = Query(default=None, alias="status"),
 ) -> list[PlanOut]:
     rows = await service.list_for_landlord(db, landlord=landlord, status_=status_)
     return [PlanOut.model_validate(r) for r in rows]

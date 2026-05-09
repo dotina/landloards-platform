@@ -1,6 +1,8 @@
 """Single-use tenant-invite signed tokens via itsdangerous."""
 from __future__ import annotations
 
+from typing import cast
+
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
 from app.core.config import get_settings
@@ -22,6 +24,6 @@ def parse_invite(token: str) -> str | None:
     settings = get_settings()
     max_age = settings.invite_token_ttl_days * 86400
     try:
-        return _serializer().loads(token, max_age=max_age)
+        return cast(str, _serializer().loads(token, max_age=max_age))
     except (SignatureExpired, BadSignature):
         return None

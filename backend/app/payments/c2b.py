@@ -20,9 +20,9 @@ park the raw payload in unmatched_c2b for landlord manual allocation.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -31,7 +31,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.audit import service as audit
 from app.invoices.models import Invoice, InvoiceStatus
 from app.invoices.service import recompute_status_for_payment
-from app.leases.models import Lease, LeaseStatus
+from app.leases.models import Lease
 from app.payments.c2b_models import UnmatchedC2B
 from app.payments.models import Payment, PaymentChannel, PaymentStatus
 from app.tenants.models import Tenant
@@ -41,22 +41,22 @@ from app.users.models import User, UserRole
 def _safe_decimal(v: Any) -> Decimal:
     try:
         return Decimal(str(v))
-    except Exception:  # noqa: BLE001
+    except Exception:
         return Decimal("0")
 
 
-def _parse_trans_time(raw: Any) -> Optional[datetime]:
+def _parse_trans_time(raw: Any) -> datetime | None:
     if not raw:
         return None
     try:
-        return datetime.strptime(str(raw), "%Y%m%d%H%M%S").replace(tzinfo=timezone.utc)
-    except Exception:  # noqa: BLE001
+        return datetime.strptime(str(raw), "%Y%m%d%H%M%S").replace(tzinfo=UTC)
+    except Exception:
         return None
 
 
 async def _find_oldest_open_invoice_for_tenant(
     db: AsyncSession, *, tenant_id: uuid.UUID
-) -> Optional[Invoice]:
+) -> Invoice | None:
     stmt = (
         select(Invoice)
         .join(Lease, Lease.id == Invoice.lease_id)
@@ -79,8 +79,8 @@ async def _find_oldest_open_invoice_for_tenant(
 
 
 async def _resolve_tenant_for_bill_ref(
-    db: AsyncSession, *, bill_ref: Optional[str]
-) -> Optional[tuple[User, Tenant]]:
+    db: AsyncSession, *, bill_ref: str | None
+) -> tuple[User, Tenant] | None:
     if not bill_ref:
         return None
     code = bill_ref.strip().upper()
@@ -99,7 +99,7 @@ async def _resolve_tenant_for_bill_ref(
 
 async def handle_c2b_confirm(
     db: AsyncSession, *, payload: dict[str, Any]
-) -> tuple[str, Optional[uuid.UUID]]:
+) -> tuple[str, uuid.UUID | None]:
     """Process a Daraja C2B confirmation. Idempotent on TransID/MpesaReceipt.
 
     Returns ``(outcome, payment_or_unmatched_id)`` where outcome is one of
@@ -147,7 +147,7 @@ async def handle_c2b_confirm(
             return "duplicate", None
         return "unmatched", u.id
 
-    user, tenant = resolved
+    _user, tenant = resolved
     invoice = await _find_oldest_open_invoice_for_tenant(db, tenant_id=tenant.id)
     payment = Payment(
         invoice_id=invoice.id if invoice is not None else None,
@@ -190,7 +190,7 @@ async def allocate_unmatched(
     actor: User,
     unmatched_id: uuid.UUID,
     tenant_id: uuid.UUID,
-    invoice_id: Optional[uuid.UUID],
+    invoice_id: uuid.UUID | None,
 ) -> Payment:
     """Convert an unmatched_c2b row into a Payment row attached to the
     chosen tenant (and optionally a specific invoice).
@@ -202,7 +202,7 @@ async def allocate_unmatched(
     if tenant is None:
         raise ValueError("tenant not found")
 
-    invoice: Optional[Invoice] = None
+    invoice: Invoice | None = None
     if invoice_id is not None:
         invoice = await db.get(Invoice, invoice_id)
         if invoice is None:

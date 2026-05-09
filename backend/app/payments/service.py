@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import uuid
+from datetime import UTC
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -126,7 +127,7 @@ async def initiate_stk(
 
 async def get_payment_by_checkout_id(
     db: AsyncSession, *, checkout_request_id: str
-) -> Optional[Payment]:
+) -> Payment | None:
     stmt = select(Payment).where(Payment.checkout_request_id == checkout_request_id)
     return (await db.execute(stmt)).scalar_one_or_none()
 
@@ -156,9 +157,9 @@ async def reconcile_pending_stk(
     a single write-path for SUCCESS. This guards against stuck rows when
     Daraja's webhook never arrives.
     """
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
-    threshold = datetime.now(tz=timezone.utc) - timedelta(seconds=older_than_seconds)
+    threshold = datetime.now(tz=UTC) - timedelta(seconds=older_than_seconds)
     stmt = select(Payment).where(
         Payment.channel == PaymentChannel.MPESA_STK,
         Payment.status == PaymentStatus.PENDING,
@@ -182,7 +183,7 @@ async def reconcile_pending_stk(
 
 async def handle_stk_callback(
     db: AsyncSession, *, payload: dict[str, Any]
-) -> Optional[Payment]:
+) -> Payment | None:
     """Update a PENDING payment from a Daraja callback. Idempotent."""
     cid, result_code, item_map = _extract_callback_fields(payload)
     if not cid:

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import Any
+from typing import Any, cast
 
 import structlog
 from structlog.types import FilteringBoundLogger
@@ -48,4 +48,4 @@ def configure_logging(level: str = "INFO") -> None:
 
 def get_logger(name: str | None = None, **initial_values: Any) -> FilteringBoundLogger:
     """Return a bound logger; pass keyword args to seed context."""
-    return structlog.get_logger(name).bind(**initial_values)
+    return cast(FilteringBoundLogger, structlog.get_logger(name).bind(**initial_values))
