@@ -4,6 +4,9 @@
  *  - Throws ApiError on non-2xx responses with the JSON body when present. */
 import { env } from "./env";
 
+/** Must match backend `CSRF_COOKIE` (`app.auth.deps`). */
+export const CSRF_COOKIE_NAME = "ll_csrf";
+
 export class ApiError extends Error {
   status: number;
   data: unknown;
@@ -51,7 +54,7 @@ export async function api<T = unknown>(
   }
 
   if (method !== "GET") {
-    const csrf = readCookie("csrf_token");
+    const csrf = readCookie(CSRF_COOKIE_NAME);
     if (csrf) headers["X-CSRF-Token"] = csrf;
   }
 

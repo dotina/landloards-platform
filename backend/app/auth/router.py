@@ -22,6 +22,7 @@ from app.auth.schemas import (
     ForgotPasswordRequest,
     LandlordRegisterRequest,
     LoginRequest,
+    LoginSuccessResponse,
     OtpRequestRequest,
     OtpVerifyRequest,
     TenantAcceptResolveResponse,
@@ -102,6 +103,7 @@ def _client_ip(request: Request) -> str:
 @router.post("/landlord/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 async def landlord_register(
     body: LandlordRegisterRequest,
+    response: Response,
     db: Annotated[AsyncSession, Depends(db_session)],
 ) -> UserOut:
     if not service.is_strong_password(body.password):
@@ -117,17 +119,21 @@ async def landlord_register(
     except service.DuplicateUser:
         raise HTTPException(status_code=409, detail="phone or email already registered")
     await db.commit()
+    access = security.create_token(subject=str(user.id), type_="access")
+    refresh = security.create_token(subject=str(user.id), type_="refresh")
+    csrf = service.generate_csrf_token()
+    _set_session_cookies(response, access=access, refresh=refresh, csrf=csrf)
     return UserOut.model_validate(user)
 
 
 # ─── Login ────────────────────────────────────────────────────────────
-@router.post("/login", response_model=CsrfTokenResponse)
+@router.post("/login", response_model=LoginSuccessResponse)
 async def login(
     body: LoginRequest,
     request: Request,
     response: Response,
     db: Annotated[AsyncSession, Depends(db_session)],
-) -> CsrfTokenResponse:
+) -> LoginSuccessResponse:
     redis = await otp_mod.open_redis()
     try:
         await _ensure_under_rate_limit(
@@ -150,7 +156,7 @@ async def login(
         refresh = security.create_token(subject=str(user.id), type_="refresh")
         csrf = service.generate_csrf_token()
         _set_session_cookies(response, access=access, refresh=refresh, csrf=csrf)
-        return CsrfTokenResponse(csrf_token=csrf)
+        return LoginSuccessResponse(csrf_token=csrf, user=UserOut.model_validate(user))
     finally:
         await redis.aclose()
 

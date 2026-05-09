@@ -21,10 +21,24 @@ function renderLogin() {
 describe("LoginPage", () => {
   beforeEach(() => {
     vi.spyOn(global, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ id: "u1", name: "Alice", role: "landlord" }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      })
+      new Response(
+        JSON.stringify({
+          csrf_token: "test-csrf",
+          user: {
+            id: "00000000-0000-0000-0000-000000000001",
+            name: "Alice",
+            email: "alice@example.com",
+            phone: "+254700000000",
+            role: "landlord",
+            is_verified: true,
+            tenant_code: null,
+          },
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      )
     );
   });
   afterEach(() => vi.restoreAllMocks());

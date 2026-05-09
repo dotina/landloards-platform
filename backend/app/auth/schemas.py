@@ -31,6 +31,7 @@ class UserOut(BaseModel):
     email: EmailStr | None = None
     role: str
     is_verified: bool
+    tenant_code: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -80,3 +81,10 @@ class ForgotPasswordRequest(BaseModel):
 
 class CsrfTokenResponse(BaseModel):
     csrf_token: str
+
+
+class LoginSuccessResponse(BaseModel):
+    """Body returned after successful login — CSRF echoes cookie token for SPA clients."""
+
+    csrf_token: str
+    user: UserOut

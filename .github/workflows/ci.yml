@@ -46,7 +46,7 @@ jobs:
       run:
         working-directory: frontend
     env:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost/api
+      NEXT_PUBLIC_API_BASE: /api
     steps:
       - uses: actions/checkout@v4
 

@@ -15,20 +15,26 @@ export interface UserOut {
 
 export async function whoami(): Promise<UserOut | null> {
   try {
-    return await api<UserOut>("/auth/whoami");
+    return await api<UserOut>("/auth/me");
   } catch {
     return null;
   }
+}
+
+interface LoginSuccessResponse {
+  csrf_token: string;
+  user: UserOut;
 }
 
 export async function login(opts: {
   identifier: string;
   password: string;
 }): Promise<UserOut> {
-  return api<UserOut>("/auth/login", {
+  const data = await api<LoginSuccessResponse>("/auth/login", {
     method: "POST",
     body: opts,
   });
+  return data.user;
 }
 
 export async function logout(): Promise<void> {
