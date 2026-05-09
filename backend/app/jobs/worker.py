@@ -1,15 +1,14 @@
-"""arq worker: background jobs (reminders, late-fee accrual, M-Pesa reconciliation).
-
-Later phases register real tasks. For now this module just makes the worker bootable.
-"""
+"""arq worker: background jobs (reminders, late-fee accrual, M-Pesa reconciliation)."""
 from __future__ import annotations
 
 from typing import Any
 
+from arq import cron
 from arq.connections import RedisSettings
 
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
+from app.jobs.daily import daily
 
 
 async def startup(ctx: dict[str, Any]) -> None:
@@ -52,7 +51,13 @@ class _LazyRedisSettings:
 class WorkerSettings:
     """arq picks this up: `arq app.jobs.worker.WorkerSettings`."""
 
-    functions: list = [reconcile_stk]
+    functions: list = [reconcile_stk, daily]
+    cron_jobs: list = [
+        # Daily 06:00 EAT == 03:00 UTC
+        cron(daily, hour={3}, minute={0}, run_at_startup=False),
+        # Hourly STK reconciliation
+        cron(reconcile_stk, minute={5}, run_at_startup=False),
+    ]
     on_startup = startup
     on_shutdown = shutdown
     redis_settings = _LazyRedisSettings()
