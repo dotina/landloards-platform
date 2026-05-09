@@ -18,6 +18,8 @@ from app.invoices.router import landlord_router as invoices_landlord_router
 from app.invoices.router import tenant_invoices_router
 from app.leases.router import router as leases_router
 from app.notifications.router import router as notifications_router
+from app.payments.c2b_router import admin_router as c2b_admin_router
+from app.payments.c2b_router import webhooks_router as c2b_webhooks_router
 from app.payments.router import admin_router as payments_admin_router
 from app.payments.router import router as payments_router
 from app.payments.router import webhooks_router as payments_webhooks_router
@@ -54,5 +56,7 @@ def create_app() -> FastAPI:
     app.include_router(payments_router)
     app.include_router(payments_admin_router)
     app.include_router(payments_webhooks_router)
+    app.include_router(c2b_webhooks_router)
+    app.include_router(c2b_admin_router)
 
     return app

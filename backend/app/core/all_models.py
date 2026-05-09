@@ -9,6 +9,7 @@ from app.audit.models import AuditEvent  # noqa: F401
 from app.invoices.models import Invoice  # noqa: F401
 from app.leases.models import Lease  # noqa: F401
 from app.notifications.models import NotificationLog  # noqa: F401
+from app.payments.c2b_models import UnmatchedC2B  # noqa: F401
 from app.payments.models import Payment  # noqa: F401
 from app.plans.models import PaymentPlan  # noqa: F401
 from app.properties.models import Property, Unit  # noqa: F401
