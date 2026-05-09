@@ -10,7 +10,6 @@ from starlette.responses import Response
 
 from app import __version__
 from app.api import health
-from app.middleware.auth_http_access_log import auth_http_access_logger
 from app.auth.router import router as auth_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
@@ -18,6 +17,7 @@ from app.invoices.router import admin_router as invoices_admin_router
 from app.invoices.router import landlord_router as invoices_landlord_router
 from app.invoices.router import tenant_invoices_router
 from app.leases.router import router as leases_router
+from app.middleware.auth_http_access_log import auth_http_access_logger
 from app.notifications.router import router as notifications_router
 from app.payments.c2b_router import admin_router as c2b_admin_router
 from app.payments.c2b_router import webhooks_router as c2b_webhooks_router
