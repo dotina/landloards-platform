@@ -21,6 +21,17 @@ interface ToastContextValue {
 
 const ToastContext = React.createContext<ToastContextValue | null>(null);
 
+let _toastCounter = 0;
+
+/** ID generator that works on insecure (HTTP) origins where `crypto.randomUUID` is undefined. */
+function nextToastId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  _toastCounter += 1;
+  return `toast-${Date.now().toString(36)}-${_toastCounter}`;
+}
+
 export function useToast(): ToastContextValue {
   const ctx = React.useContext(ToastContext);
   if (!ctx) throw new Error("useToast must be used inside <ToastProvider>");
@@ -36,7 +47,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const push = React.useCallback<ToastContextValue["push"]>(
     ({ ttlMs = 4_000, ...t }) => {
-      const id = crypto.randomUUID();
+      const id = nextToastId();
       setToasts((prev) => [...prev, { id, ...t }]);
       window.setTimeout(() => dismiss(id), ttlMs);
     },

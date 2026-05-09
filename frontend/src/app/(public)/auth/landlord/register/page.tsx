@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,6 +12,7 @@ import { useToast } from "@/components/ui/toast";
 import { authDebug, hasVisibleCsrfCookie } from "@/lib/auth-debug";
 import { api, ApiError } from "@/lib/api";
 import type { UserOut } from "@/lib/auth";
+import { hardNavigate } from "@/lib/navigate";
 
 const schema = z.object({
   name: z.string().min(2, "Tell us your name"),
@@ -32,7 +32,6 @@ type FormValues = z.infer<typeof schema>;
 
 export default function LandlordRegisterPage() {
   const { push } = useToast();
-  const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const {
     register,
@@ -54,8 +53,8 @@ export default function LandlordRegisterPage() {
         ll_csrf_visible: hasVisibleCsrfCookie(),
       });
       push({ kind: "success", message: `Welcome, ${user.name}` });
-      authDebug("register_router_push", { href: "/dashboard" });
-      router.push("/dashboard");
+      authDebug("register_hard_navigate", { href: "/dashboard" });
+      hardNavigate("/dashboard");
     } catch (e) {
       authDebug("register_submit_error", {
         kind: e instanceof ApiError ? "ApiError" : "unknown",
@@ -65,7 +64,6 @@ export default function LandlordRegisterPage() {
       const msg =
         e instanceof ApiError ? e.message : "Registration failed. Try again.";
       push({ kind: "error", message: msg });
-    } finally {
       setSubmitting(false);
     }
   }

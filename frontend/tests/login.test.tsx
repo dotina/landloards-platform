@@ -7,6 +7,10 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }));
 
+vi.mock("@/lib/navigate", () => ({
+  hardNavigate: vi.fn(),
+}));
+
 import LoginPage from "@/app/(public)/auth/login/page";
 import { Providers } from "@/components/providers";
 

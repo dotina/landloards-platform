@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,6 +13,7 @@ import { useToast } from "@/components/ui/toast";
 import { authDebug, hasVisibleCsrfCookie } from "@/lib/auth-debug";
 import { login } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
+import { hardNavigate } from "@/lib/navigate";
 
 const schema = z.object({
   identifier: z
@@ -30,7 +30,6 @@ type FormValues = z.infer<typeof schema>;
 
 export default function LoginPage() {
   const { push } = useToast();
-  const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const {
     register,
@@ -50,8 +49,8 @@ export default function LoginPage() {
       });
       push({ kind: "success", message: `Welcome back, ${user.name}` });
       const nextHref = user.role === "tenant" ? "/tenant" : "/dashboard";
-      authDebug("login_router_push", { href: nextHref });
-      router.push(nextHref);
+      authDebug("login_hard_navigate", { href: nextHref });
+      hardNavigate(nextHref);
     } catch (e) {
       authDebug("login_submit_error", {
         kind: e instanceof ApiError ? "ApiError" : "unknown",
@@ -61,7 +60,6 @@ export default function LoginPage() {
       const msg =
         e instanceof ApiError ? e.message : "Could not sign in. Try again.";
       push({ kind: "error", message: msg });
-    } finally {
       setSubmitting(false);
     }
   }
