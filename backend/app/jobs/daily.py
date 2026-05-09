@@ -118,9 +118,12 @@ async def run_daily(today: _date | None = None) -> dict[str, int]:
     today = today or _today_eat()
     from app.core.db import get_session_factory
 
+    from app.plans.service import detect_defaults
+
     async with get_session_factory()() as db:
         invs = await generate_for_today(db, today=today)
         accrued = await _accrue_late_fees(db, today=today)
+        defaulted = await detect_defaults(db, today=today)
         sent = await _send_reminders(db, today=today)
         await db.commit()
 
@@ -129,11 +132,13 @@ async def run_daily(today: _date | None = None) -> dict[str, int]:
         date=today.isoformat(),
         invoices_generated=len(invs),
         late_fees_updated=accrued,
+        plans_defaulted=defaulted,
         reminders_sent=sent,
     )
     return {
         "invoices_generated": len(invs),
         "late_fees_updated": accrued,
+        "plans_defaulted": defaulted,
         "reminders_sent": sent,
     }
 
