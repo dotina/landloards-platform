@@ -55,6 +55,16 @@ class Settings(BaseSettings):
     cookie_samesite: Literal["lax", "strict", "none"] = "lax"
     cookie_domain: str | None = None
 
+    # ─── Notifications ────────────────────────────────────────────
+    at_username: str = "sandbox"
+    at_api_key: str = "dev-only-at-key"
+    at_sender_id: str = "LANDLOADS"
+    at_base_url: str = "https://api.sandbox.africastalking.com/version1"
+    resend_api_key: str = "dev-only-resend-key"
+    resend_base_url: str = "https://api.resend.com"
+    email_from: str = "no-reply@landloads.co.ke"
+    notifications_enabled: bool = False  # flip in staging/prod
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

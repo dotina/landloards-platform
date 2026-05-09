@@ -12,6 +12,8 @@ from app.auth import otp as otp_mod
 from app.auth import rate_limit
 from app.auth import security
 from app.auth import service
+from app.notifications import service as notifications
+from app.notifications.models import NotificationChannel
 from app.auth.deps import (
     ACCESS_COOKIE,
     CSRF_COOKIE,
@@ -215,11 +217,17 @@ async def invite_tenant(
         )
     except service.DuplicateUser:
         raise HTTPException(status_code=409, detail="phone already registered")
-    await db.commit()
-    return TenantInviteResponse(
-        user_id=user.id,
-        accept_url=f"/auth/tenant/accept/{token}",
+
+    accept_url = f"/auth/tenant/accept/{token}"
+    await notifications.send(
+        db,
+        recipient=user,
+        channel=NotificationChannel.SMS,
+        template="tenant_invite",
+        context={"name": user.name, "accept_url": accept_url},
     )
+    await db.commit()
+    return TenantInviteResponse(user_id=user.id, accept_url=accept_url)
 
 
 # ─── Tenant accept (token resolution) ─────────────────────────────────
@@ -255,18 +263,19 @@ async def otp_request(
             window_seconds=3600,
         )
         code = await otp_mod.issue(redis, str(user.id))
-        # Phase 7 will replace this with the real Africa's Talking send.
-        from app.core.logging import get_logger
-
-        get_logger("auth.otp").info(
-            "otp_issued",
-            user_id=str(user.id),
-            phone=user.phone,
-            code=code,  # logged at INFO only in dev; redacted in prod via filter
-        )
     finally:
         await redis.aclose()
 
+    from app.core.config import get_settings
+
+    await notifications.send(
+        db,
+        recipient=user,
+        channel=NotificationChannel.SMS,
+        template="otp",
+        context={"code": code, "ttl_min": get_settings().otp_ttl_minutes},
+    )
+    await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

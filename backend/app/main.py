@@ -17,6 +17,7 @@ from app.invoices.router import admin_router as invoices_admin_router
 from app.invoices.router import landlord_router as invoices_landlord_router
 from app.invoices.router import tenant_invoices_router
 from app.leases.router import router as leases_router
+from app.notifications.router import router as notifications_router
 from app.tenants.router import admin_router as tenants_admin_router
 from app.tenants.router import tenant_router as tenants_tenant_router
 
@@ -46,5 +47,6 @@ def create_app() -> FastAPI:
     app.include_router(invoices_landlord_router)
     app.include_router(invoices_admin_router)
     app.include_router(tenant_invoices_router)
+    app.include_router(notifications_router)
 
     return app
