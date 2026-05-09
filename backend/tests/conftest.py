@@ -18,6 +18,10 @@ _DEFAULT_ENV = {
     "MINIO_SECRET_KEY": "test",
     "MINIO_BUCKET": "test",
     "MINIO_USE_SSL": "false",
+    "JWT_SECRET": "test-jwt-secret-please-do-not-use-in-prod-32+chars",
+    "PII_ENCRYPTION_KEY": "test-pii-key-32-chars-or-longer",
+    "COOKIE_SECURE": "false",
+    "COOKIE_SAMESITE": "lax",
 }
 
 

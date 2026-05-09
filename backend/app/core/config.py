@@ -36,6 +36,25 @@ class Settings(BaseSettings):
 
     sentry_dsn: str | None = None
 
+    # ─── Auth ─────────────────────────────────────────────────────
+    jwt_secret: str = Field(
+        default="dev-only-jwt-secret-change-in-prod-min-32-chars-long",
+        description="HMAC-SHA256 key for access + refresh JWTs",
+    )
+    jwt_access_ttl_minutes: int = 15
+    jwt_refresh_ttl_days: int = 30
+    invite_token_ttl_days: int = 7
+    otp_ttl_minutes: int = 10
+    pii_encryption_key: str = Field(
+        default="dev-only-pii-key-change-in-prod-32-chars",
+        description="pgcrypto pgp_sym_encrypt key for ID number / KRA PIN",
+    )
+
+    # ─── Cookie / CSRF ────────────────────────────────────────────
+    cookie_secure: bool = False  # True in prod (HTTPS-only)
+    cookie_samesite: Literal["lax", "strict", "none"] = "lax"
+    cookie_domain: str | None = None
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
