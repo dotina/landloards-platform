@@ -13,6 +13,8 @@ from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 from app.properties.router import router as properties_router
 from app.properties.router import units_router as units_router
+from app.tenants.router import admin_router as tenants_admin_router
+from app.tenants.router import tenant_router as tenants_tenant_router
 
 
 def create_app() -> FastAPI:
@@ -34,5 +36,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(properties_router)
     app.include_router(units_router)
+    app.include_router(tenants_tenant_router)
+    app.include_router(tenants_admin_router)
 
     return app
