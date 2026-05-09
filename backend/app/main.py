@@ -37,6 +37,23 @@ def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging(level=settings.log_level)
 
+    if settings.sentry_dsn:
+        try:
+            import sentry_sdk
+
+            sentry_sdk.init(
+                dsn=settings.sentry_dsn,
+                environment=settings.app_env,
+                release=__version__,
+                traces_sample_rate=0.1,
+                send_default_pii=False,
+            )
+        except ImportError:
+            get_logger("app.startup").warning(
+                "sentry_sdk_not_installed",
+                hint="install sentry-sdk to enable error reporting",
+            )
+
     app = FastAPI(
         title="Landloads API",
         version=__version__,
@@ -45,7 +62,7 @@ def create_app() -> FastAPI:
     )
 
     log = get_logger("app.startup", env=settings.app_env)
-    log.info("application_startup")
+    log.info("application_startup", version=__version__)
 
     app.include_router(health.router)
     app.include_router(auth_router)
@@ -72,9 +89,11 @@ def create_app() -> FastAPI:
     from app.payments.router import tenant_router as payments_tenant_router
     from app.leases.router import tenant_router as leases_tenant_router
     from app.notifications.router import tenant_router as notifications_tenant_router
+    from app.compliance.router import router as compliance_router
 
     app.include_router(payments_tenant_router)
     app.include_router(leases_tenant_router)
     app.include_router(notifications_tenant_router)
+    app.include_router(compliance_router)
 
     return app

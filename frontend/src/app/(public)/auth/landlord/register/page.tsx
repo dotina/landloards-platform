@@ -103,6 +103,16 @@ export default function LandlordRegisterPage() {
           <Button type="submit" className="w-full" disabled={submitting}>
             {submitting ? "Creating account…" : "Create account"}
           </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            By creating an account you agree to our{" "}
+            <a
+              href="/privacy"
+              className="text-primary hover:underline"
+            >
+              privacy notice
+            </a>
+            .
+          </p>
         </form>
       </CardContent>
     </Card>
