@@ -6,7 +6,7 @@ import uuid
 from datetime import date
 from typing import Any, Optional
 
-from sqlalchemy import Date, Enum as SAEnum, ForeignKey, Index
+from sqlalchemy import Date, Enum as SAEnum, ForeignKey, Index, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -37,6 +37,13 @@ class Lease(IdMixin, TimestampMixin, Base):
     __table_args__ = (
         Index("ix_leases_unit_status", "unit_id", "status"),
         Index("ix_leases_tenant_status", "tenant_id", "status"),
+        # Calendar invariant from design §5: at most one ACTIVE lease per unit.
+        Index(
+            "uq_leases_unit_active",
+            "unit_id",
+            unique=True,
+            postgresql_where=text("status = 'active'"),
+        ),
     )
 
     unit_id: Mapped[uuid.UUID] = mapped_column(
