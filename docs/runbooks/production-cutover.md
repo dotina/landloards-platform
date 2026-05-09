@@ -15,13 +15,15 @@ green only when every step below has been executed and signed off
 
 ## 1. Server bootstrap (T-3 days)
 
+Routine deploys use `/root/landloads` and GitHub Actions per [docs/DEPLOY.md](../DEPLOY.md).
+Use the steps below for first-time host prep or manual bootstrap.
+
 - [ ] Docker + docker-compose v2 installed.
-- [ ] `git clone` Landloads to `/opt/landloads`.
-- [ ] Copy `.env.production.example` → `/opt/landloads/.env`; fill in
-      every `CHANGE_ME` slot. Verify with:
-      ```bash
-      grep CHANGE_ME /opt/landloads/.env  # must print nothing
-      ```
+- [ ] **(Optional manual clone)** `git clone` Landloads to `/root/landloads` if you are
+      not relying on CI to populate the directory.
+- [ ] Production `.env` on the server (same shape as `.env.example`), typically supplied
+      via the `ENV_FILE` GitHub secret for automated deploys. Verify secrets are set and
+      **`NEXT_PUBLIC_API_BASE_URL`** matches your public URL (see [docs/DEPLOY.md](../DEPLOY.md)).
 - [ ] `docker compose up -d postgres redis minio` — wait for healthy.
 - [ ] Run migrations from a one-off container:
       ```bash
@@ -37,7 +39,7 @@ green only when every step below has been executed and signed off
 ## 2. TLS + Nginx hardening (T-2 days)
 
 - [ ] Follow [docs/runbooks/tls.md](./tls.md) to install Certbot.
-- [ ] Swap `default.conf` → `default.prod.conf`.
+- [ ] Swap host `default.conf` → [`deploy/nginx/prod/default.prod.conf`](../deploy/nginx/prod/default.prod.conf) per [tls.md](./tls.md).
 - [ ] `nginx -t && systemctl reload nginx`.
 - [ ] `curl -sSI https://landloads.example.co.ke/healthz` returns
       `200` with HSTS header.
@@ -57,7 +59,7 @@ green only when every step below has been executed and signed off
 
 - [ ] `crontab -e`:
       ```
-      0 2 * * * cd /opt/landloads && ./deploy/backup/backup.sh \
+      0 2 * * * cd /root/landloads && ./deploy/backup/backup.sh \
           >> /var/log/landloads-backup.log 2>&1
       ```
 - [ ] Run it once manually to confirm an upload to `s3://landloads-backups/daily/`.
@@ -97,7 +99,10 @@ operator initials, and any incidents.
 If a critical defect is found within the first 24 h:
 
 1. `docker compose stop backend worker frontend`.
-2. `git checkout v0.16.0-tenant-portal`.
-3. `docker compose up -d --build backend worker frontend`.
+2. `git checkout v0.16.0-tenant-portal` (when the repo is present on the host), or
+   redeploy the previous known-good images via CI / saved `images.tar`.
+3. `docker compose up -d --build backend worker frontend` when build context exists on
+   the server; otherwise `docker compose up -d --no-build` with images loaded from CI
+   artifacts.
 4. File a Sentry incident.
 5. Triage, then re-cut a hotfix tag (e.g. `v1.0.1`).

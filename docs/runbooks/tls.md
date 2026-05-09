@@ -24,10 +24,12 @@ works on day 1 and renews itself for the next two years.
    sudo ln -sfn /etc/letsencrypt/live/landloads.example.co.ke \
      /etc/letsencrypt/live/landloads
    ```
-5. Swap `default.conf` → `default.prod.conf`:
+5. Swap `default.conf` → production template (from the repo, kept outside
+   `conf.d/` in git so Docker Compose does not load two files that both define
+   the same `upstream` names):
    ```bash
    sudo mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.dev.conf
-   sudo cp deploy/nginx/conf.d/default.prod.conf /etc/nginx/conf.d/default.conf
+   sudo cp deploy/nginx/prod/default.prod.conf /etc/nginx/conf.d/default.conf
    sudo nginx -t && sudo systemctl reload nginx
    ```
 

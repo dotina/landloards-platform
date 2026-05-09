@@ -58,6 +58,8 @@ redis-data/
 minio-data/
 uploads/
 
+docs/
+
 # Generated
 /coverage
 /playwright-report

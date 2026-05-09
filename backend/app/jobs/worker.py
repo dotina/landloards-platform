@@ -36,20 +36,14 @@ async def shutdown(ctx: dict[str, Any]) -> None:
     ctx["log"].info("worker_stopped")
 
 
-class _LazyRedisSettings:
-    """Class-attribute descriptor that resolves RedisSettings on every access.
-
-    Needed because ``WorkerSettings`` is read at module-import time but
-    REDIS_URL may be set later (e.g. by tests). arq accesses this attribute
-    once at worker start, so per-access cost is irrelevant in production.
-    """
-
-    def __get__(self, _obj: object, _objtype: type | None = None) -> RedisSettings:
-        return RedisSettings.from_dsn(get_settings().redis_url)
-
-
 class WorkerSettings:
-    """arq picks this up: `arq app.jobs.worker.WorkerSettings`."""
+    """arq picks this up: `arq app.jobs.worker.WorkerSettings`.
+
+    ``redis_settings`` must be a concrete :class:`RedisSettings` instance: arq's
+    ``get_kwargs()`` copies fields from ``WorkerSettings.__dict__`` and does not
+    invoke descriptors, so lazy resolution would pass the wrong object into
+    ``create_pool`` and crash the worker.
+    """
 
     functions: list = [reconcile_stk, daily]
     cron_jobs: list = [
@@ -60,4 +54,4 @@ class WorkerSettings:
     ]
     on_startup = startup
     on_shutdown = shutdown
-    redis_settings = _LazyRedisSettings()
+    redis_settings = RedisSettings.from_dsn(get_settings().redis_url)

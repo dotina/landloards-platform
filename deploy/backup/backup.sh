@@ -2,7 +2,7 @@
 # Daily Postgres backup shipped to MinIO.
 #
 # Schedule via cron on the host (or as a sidecar arq job):
-#   0 2 * * * /opt/landloads/deploy/backup/backup.sh >> /var/log/landloads-backup.log 2>&1
+#   0 2 * * * /root/landloads/deploy/backup/backup.sh >> /var/log/landloads-backup.log 2>&1
 #
 # Required env vars:
 #   POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
