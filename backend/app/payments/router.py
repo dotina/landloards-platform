@@ -74,6 +74,31 @@ async def stk_status(
     return PaymentOut.model_validate(payment)
 
 
+tenant_router = APIRouter(prefix="/tenant/payments", tags=["tenant-payments"])
+
+
+@tenant_router.get("", response_model=list[PaymentOut])
+async def list_my_payments(
+    db: Annotated[AsyncSession, Depends(db_session)],
+    user: Annotated[User, Depends(require_tenant)],
+) -> list[PaymentOut]:
+    from sqlalchemy import select
+
+    from app.payments.models import Payment
+
+    tenant = await get_tenant_by_user_id(db, user_id=user.id)
+    if tenant is None:
+        return []
+    rows = (
+        await db.execute(
+            select(Payment)
+            .where(Payment.tenant_id == tenant.id)
+            .order_by(Payment.created_at.desc())
+        )
+    ).scalars().all()
+    return [PaymentOut.model_validate(r) for r in rows]
+
+
 # Landlord/admin
 admin_router = APIRouter(prefix="/admin/payments", tags=["admin-payments"])
 

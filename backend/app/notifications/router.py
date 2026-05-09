@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import db_session
-from app.auth.deps import require_landlord
+from app.auth.deps import require_landlord, require_tenant
 from app.notifications import service
 from app.notifications.models import NotificationChannel, NotificationStatus
 from app.users.models import User
@@ -24,6 +24,7 @@ class NotificationLogOut(BaseModel):
     provider_message_id: Optional[str]
     status: str
     error: Optional[str]
+    created_at: Optional[object] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -42,4 +43,16 @@ async def list_notifications(
     rows = await service.list_for_admin(
         db, recipient_id=recipient_id, channel=channel, status_=status_
     )
+    return [NotificationLogOut.model_validate(r) for r in rows]
+
+
+tenant_router = APIRouter(prefix="/tenant/notifications", tags=["tenant-notifications"])
+
+
+@tenant_router.get("", response_model=list[NotificationLogOut])
+async def list_my_notifications(
+    db: Annotated[AsyncSession, Depends(db_session)],
+    user: Annotated[User, Depends(require_tenant)],
+) -> list[NotificationLogOut]:
+    rows = await service.list_for_admin(db, recipient_id=user.id)
     return [NotificationLogOut.model_validate(r) for r in rows]

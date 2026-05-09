@@ -69,4 +69,12 @@ def create_app() -> FastAPI:
     app.include_router(receipts_admin_router)
     app.include_router(receipts_tenant_router)
 
+    from app.payments.router import tenant_router as payments_tenant_router
+    from app.leases.router import tenant_router as leases_tenant_router
+    from app.notifications.router import tenant_router as notifications_tenant_router
+
+    app.include_router(payments_tenant_router)
+    app.include_router(leases_tenant_router)
+    app.include_router(notifications_tenant_router)
+
     return app
